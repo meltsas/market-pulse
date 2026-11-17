@@ -20,33 +20,37 @@ Unchecked items are planned, not delivered. Update this document as work is comp
 
 **Goal:** a maintainable SPA that builds, runs, and navigates correctly.
 
-- [ ] Scaffold React + TypeScript with Vite and strict type checking.
-- [ ] Configure ESLint, Prettier, Vitest, and React Testing Library.
-- [ ] Add React Router with a shared responsive dashboard layout.
-- [ ] Create routes: `/opportunities`, `/live-monitor`, `/watchlist`, and 404.
-- [ ] Establish SCSS Modules, CSS design tokens, and a few accessible base components.
-- [ ] Add Redux Toolkit, typed hooks, and RTK Query for REST API calls.
-- [ ] Define Zod schemas and TypeScript contracts for initial API payloads.
-- [ ] Add `.env.example` containing only non-sensitive configuration and a safe `.gitignore`.
-- [ ] Document verified development commands in `README.md`.
+- [x] Scaffold React + TypeScript with Vite and strict type checking.
+- [x] Configure ESLint, Prettier, Vitest, and React Testing Library.
+- [x] Add React Router with a shared responsive dashboard layout.
+- [x] Create routes: `/opportunities`, `/live-monitor`, `/watchlist`, and 404.
+- [x] Establish SCSS Modules, CSS design tokens, and a few accessible base components.
+- [x] Add Redux Toolkit, typed hooks, and RTK Query for REST API calls.
+- [x] Define Zod schemas and TypeScript contracts for initial API payloads.
+- [x] Add `.env.example` containing only non-sensitive configuration and a safe `.gitignore`.
+- [x] Document verified development commands in `README.md`.
 
 **Acceptance:** routes work, TypeScript checks pass, tests run, the production build succeeds, and no external API is necessary.
+
+TypeScript stays on 6.0.x until `typescript-eslint` supports TypeScript 7.
 
 ## Phase 2 — Local Node.js / TypeScript mock server
 
 **Goal:** make the public project demonstrable without the private backend.
 
-- [ ] Add a small TypeScript server under `mock-server/`, using minimal dependencies.
+- [ ] Add a small TypeScript server under `mock-server/` using Fastify, run with Node's built-in TypeScript type stripping (no `tsx` or build step).
+- [ ] Reuse the Zod contracts in `src/contracts/` rather than duplicating API types.
+- [ ] Initially serve REST responses from JSON fixture files; generate SSE events in code.
 - [ ] Configure the Vite `/api` development proxy.
 - [ ] Seed a fixed set of fictional or clearly labeled demonstration instruments.
 - [ ] Generate deterministic price and optional volume updates with UTC timestamps.
 - [ ] Implement three initial endpoints:
 
-  | Endpoint | Purpose |
-  | --- | --- |
-  | `GET /api/opportunities` | Illustrative screening results and supporting metrics |
-  | `GET /api/market/snapshot` | Current prices and timestamps for the live dashboard |
-  | `GET /api/market/stream` | SSE updates and detected anomaly events |
+  | Endpoint                   | Purpose                                               |
+  | -------------------------- | ----------------------------------------------------- |
+  | `GET /api/opportunities`   | Illustrative screening results and supporting metrics |
+  | `GET /api/market/snapshot` | Current prices and timestamps for the live dashboard  |
+  | `GET /api/market/stream`   | SSE updates and detected anomaly events               |
 
 - [ ] Define a small typed event contract, e.g. `quote.updated` and `anomaly.detected`, with event IDs and timestamps.
 - [ ] Support at least one repeatable demo scenario (price spike, dip, or abnormal volume).

@@ -19,8 +19,8 @@ These rules apply to all AI agents working in this repository. Follow the existi
 - Use meaningful component, hook, function, variable, and file names. Avoid unexplained abbreviations.
 - Keep responsibilities separated, but do not extract a helper or abstraction for a single trivial use.
 - Avoid deep nesting; prefer early returns and straightforward conditionals.
-- **Do not generate explanatory comment blocks, decorative section comments, or redundant JSDoc.** Code should explain *what* it does through names and structure.
-- Add a short comment only when it explains a non-obvious *why*, important constraint, or surprising behavior that cannot be made clear in code.
+- **Do not generate explanatory comment blocks, decorative section comments, or redundant JSDoc.** Code should explain _what_ it does through names and structure.
+- Add a short comment only when it explains a non-obvious _why_, important constraint, or surprising behavior that cannot be made clear in code.
 - Do not leave debug logs, dead code, commented-out code, or unrequested TODOs.
 
 ## 3. TypeScript: strict by default

@@ -1,0 +1,23 @@
+@mixin light {
+  color-scheme: light;
+  --color-background: #f6f7f9;
+  --color-surface: #ffffff;
+  --color-border: #d7dce3;
+  --color-text: #17202b;
+  --color-text-muted: #4f5b6b;
+  --color-accent: #1f5fd1;
+  --color-accent-subtle: #e6eefc;
+  --color-focus-ring: #1f5fd1;
+}
+
+@mixin dark {
+  color-scheme: dark;
+  --color-background: #0f141b;
+  --color-surface: #171e27;
+  --color-border: #2a3441;
+  --color-text: #e6ebf1;
+  --color-text-muted: #9aa6b5;
+  --color-accent: #6ea2ff;
+  --color-accent-subtle: #1c2a42;
+  --color-focus-ring: #8db7ff;
+}

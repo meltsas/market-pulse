@@ -1,29 +1,21 @@
-# Angular specific
-/dist/
-/out-tsc/
-/tmp/
-/temp/
-/coverage/
-/e2e/test-output/
+# Dependencies
+node_modules/
 
-# Node modules and dependency files
-/node_modules/
-/package-lock.json
-/yarn.lock
+# Build output
+dist/
 
-# Environment files
-/.env
-
-
-# TypeScript cache
-*.tsbuildinfo
+# Environment files (only the example is committed)
+.env
+.env.*
+!.env.example
 
 # Logs
+*.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # IDE / Editor
-.idea
-.vscode
+.idea/
+.vscode/
+
+# Local AI session logs
 /docs/ai/sessions/
