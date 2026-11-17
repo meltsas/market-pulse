@@ -26,3 +26,4 @@ yarn-error.log*
 # IDE / Editor
 .idea
 .vscode
+/docs/ai/sessions/
