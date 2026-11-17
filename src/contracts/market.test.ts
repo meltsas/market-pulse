@@ -18,8 +18,11 @@ describe('marketSnapshotSchema', () => {
     expect(marketSnapshotSchema.safeParse(snapshot).success).toBe(false);
   });
 
-  it('rejects data that is not labeled as simulated', () => {
-    const snapshot = { ...sampleMarketSnapshot, dataSource: 'live' };
+  it('rejects data without a known data source', () => {
+    const snapshot = {
+      ...sampleMarketSnapshot,
+      dataSource: { ...sampleMarketSnapshot.dataSource, kind: 'live' },
+    };
 
     expect(marketSnapshotSchema.safeParse(snapshot).success).toBe(false);
   });

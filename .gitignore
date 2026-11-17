@@ -19,3 +19,6 @@ npm-debug.log*
 
 # Local AI session logs
 /docs/ai/sessions/
+
+# Recorded third-party market data (license does not allow redistribution)
+/mock-server/data/recorded/

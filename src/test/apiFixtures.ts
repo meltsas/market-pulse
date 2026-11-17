@@ -1,42 +1,53 @@
-import type { MarketSnapshot } from '../contracts/market.ts';
+import type { DataSource, MarketSnapshot } from '../contracts/market.ts';
 import type { OpportunityList } from '../contracts/opportunities.ts';
 
+const sampleDataSource: DataSource = {
+  kind: 'historical-replay',
+  providers: ['Yahoo Finance'],
+  replayStart: '2026-11-04T00:00:00Z',
+  replayEnd: '2026-11-07T00:00:00Z',
+  speedMultiplier: 300,
+};
+
 export const sampleMarketSnapshot: MarketSnapshot = {
-  asOf: '2026-11-17T14:30:00Z',
-  dataSource: 'simulated',
+  asOf: '2026-11-05T15:00:00Z',
+  dataSource: sampleDataSource,
   quotes: [
     {
-      symbol: 'DEMO-NRG',
-      name: 'Northwind Energy (demo)',
+      symbol: 'NVDA',
+      name: 'NVIDIA',
+      assetClass: 'stock',
       currency: 'USD',
-      price: 42.18,
-      change: 0.54,
-      changePercent: 1.3,
-      volume: 1_250_000,
-      timestamp: '2026-11-17T14:29:58Z',
+      price: 171.4,
+      previousClose: 182,
+      change: -10.6,
+      changePercent: -5.82,
+      sessionVolume: 98_500_000,
+      timestamp: '2026-11-05T15:00:00Z',
     },
   ],
 };
 
 export const sampleOpportunityList: OpportunityList = {
-  asOf: '2026-11-17T06:00:00Z',
-  dataSource: 'simulated',
+  asOf: '2026-11-05T00:00:00Z',
+  dataSource: {
+    ...sampleDataSource,
+    providers: ['Yahoo Finance', 'SEC EDGAR'],
+  },
   opportunities: [
     {
-      symbol: 'DEMO-NRG',
-      name: 'Northwind Energy (demo)',
+      symbol: 'ORCL',
+      name: 'Oracle',
+      assetClass: 'stock',
       currency: 'USD',
-      price: 42.18,
+      price: 121.5,
       metrics: {
-        drawdownFromHighPercent: 24.5,
-        revenueGrowthPercent: 8.2,
+        drawdownFromHighPercent: 51.2,
+        revenueGrowthPercent: 12.4,
         priceToEarnings: null,
       },
-      signals: [
-        'Trading 24.5% below its 52-week high',
-        'Revenue grew 8.2% year over year',
-      ],
-      caveats: ['No P/E ratio: the company reported a loss'],
+      signals: ['Trading 51.2% below its 52-week high'],
+      caveats: ['No P/E ratio: diluted EPS was not positive'],
     },
   ],
 };

@@ -38,13 +38,13 @@ TypeScript stays on 6.0.x until `typescript-eslint` supports TypeScript 7.
 
 **Goal:** make the public project demonstrable without the private backend.
 
-- [ ] Add a small TypeScript server under `mock-server/` using Fastify, run with Node's built-in TypeScript type stripping (no `tsx` or build step).
-- [ ] Reuse the Zod contracts in `src/contracts/` rather than duplicating API types.
-- [ ] Initially serve REST responses from JSON fixture files; generate SSE events in code.
-- [ ] Configure the Vite `/api` development proxy.
-- [ ] Seed a fixed set of fictional or clearly labeled demonstration instruments.
-- [ ] Generate deterministic price and optional volume updates with UTC timestamps.
-- [ ] Implement three initial endpoints:
+- [x] Add a small TypeScript server under `mock-server/` using Fastify, run with Node's built-in TypeScript type stripping (no `tsx` or build step).
+- [x] Reuse the Zod contracts in `src/contracts/` rather than duplicating API types.
+- [x] Record real market data once into JSON files and derive REST responses and SSE events from it (historical replay).
+- [x] Configure the Vite `/api` development proxy.
+- [x] Use a fixed set of clearly labeled demonstration instruments: three indices, six US stocks, Bitcoin, and EUR/USD.
+- [x] Replay recorded 5-minute bars deterministically with UTC market timestamps and session volume.
+- [x] Implement three initial endpoints:
 
   | Endpoint                   | Purpose                                               |
   | -------------------------- | ----------------------------------------------------- |
@@ -52,13 +52,17 @@ TypeScript stays on 6.0.x until `typescript-eslint` supports TypeScript 7.
   | `GET /api/market/snapshot` | Current prices and timestamps for the live dashboard  |
   | `GET /api/market/stream`   | SSE updates and detected anomaly events               |
 
-- [ ] Define a small typed event contract, e.g. `quote.updated` and `anomaly.detected`, with event IDs and timestamps.
-- [ ] Support at least one repeatable demo scenario (price spike, dip, or abnormal volume).
-- [ ] Clean up disconnected SSE clients and related listeners/timers.
-- [ ] Test simulator output and endpoint response shapes.
-- [ ] Add and verify scripts for starting the UI and the mock server locally.
+- [x] Define a small typed event contract, e.g. `quote.updated` and `anomaly.detected`, with event IDs and timestamps.
+- [x] Support at least one repeatable demo scenario (price spike, dip, or abnormal volume): the 5 November 2026 sell-off.
+- [x] Clean up disconnected SSE clients and related listeners/timers.
+- [x] Test simulator output and endpoint response shapes.
+- [x] Add and verify scripts for starting the UI and the mock server locally.
+- [ ] Add a small committed fallback dataset, so the mock API runs without recording. Yahoo Finance serves 5-minute bars only for about 60 days, so the 4–6 November window cannot be recorded after early January 2027.
+- [ ] Extend the replay window to 2–16 November 2026 while the 5-minute data is still available.
 
 **Acceptance:** after cloning, a developer can run the UI and mock API, fetch snapshots, and receive predictable SSE events without API keys.
+
+Data licensing: Yahoo Finance prices are recorded locally into a gitignored folder and never committed. SEC EDGAR fundamentals and ECB statistics (reusable with attribution) may be committed.
 
 ## Phase 3 — Live Market Monitor
 
@@ -66,10 +70,11 @@ TypeScript stays on 6.0.x until `typescript-eslint` supports TypeScript 7.
 
 - [ ] Fetch the initial market snapshot through RTK Query.
 - [ ] Build an instrument list and detail view with price, change, timestamp, and data-source labeling.
+- [ ] Show a persistent demo-data notice whenever mock data is displayed: replay window, speed, current market date and time with time zone, and data providers.
 - [ ] Subscribe to SSE using a dedicated service or Hook; validate incoming events with Zod.
 - [ ] Draw a price history chart for the selected instrument; choose a charting library when needed.
 - [ ] Show anomaly alerts with clear, explainable detection reasons.
-- [ ] Implement simple detector rules in the mock server: percentage change in a time window and/or relative volume spike.
+- [ ] Add a relative volume spike rule to the mock server detector; a 30-minute price-move rule exists since Phase 2.
 - [ ] Display connecting, connected, reconnecting, disconnected, and stale-data states.
 - [ ] On reconnection, avoid losing events between the snapshot request and the live subscription. Refresh the snapshot if event continuity cannot be guaranteed.
 - [ ] Avoid unnecessary full-dashboard renders; measure before optimizing or adding memoization.
@@ -84,6 +89,7 @@ TypeScript stays on 6.0.x until `typescript-eslint` supports TypeScript 7.
 - [ ] Render an opportunity list from the mock REST endpoint with sorting and a few useful filters.
 - [ ] Add an opportunity detail view explaining why an instrument was surfaced.
 - [ ] Start with simple, interpretable screening conditions: drawdown from a recent high, revenue growth, and a valuation metric where available.
+- [ ] Give each result a long/short bias with its reasons and risks, never a buy or sell recommendation.
 - [ ] Show data freshness and missing metrics explicitly; do not infer that a falling stock is automatically undervalued.
 - [ ] Add a basic local watchlist; avoid authentication and server persistence for the first release.
 - [ ] Allow watchlisted instruments to be followed in Live Market Monitor.

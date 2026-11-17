@@ -15,7 +15,10 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "mock-server": "node --watch mock-server/src/server.ts",
+    "mock-server:record": "node mock-server/scripts/record-market-data.ts",
+    "mock-server:record-fundamentals": "node --env-file-if-exists=.env mock-server/scripts/record-sec-fundamentals.ts"
   },
   "dependencies": {
     "@reduxjs/toolkit": "2.14.0",
@@ -39,6 +42,7 @@
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-react-hooks": "7.1.1",
     "eslint-plugin-react-refresh": "0.5.8",
+    "fastify": "5.12.8",
     "jsdom": "31.0.1",
     "prettier": "3.10.1",
     "sass": "1.108.2",

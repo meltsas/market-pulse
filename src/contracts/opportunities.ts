@@ -10,7 +10,7 @@ const opportunitySchema = instrumentSchema.extend({
   metrics: z.object({
     drawdownFromHighPercent: z.number().nonnegative().nullable(),
     revenueGrowthPercent: z.number().nullable(),
-    priceToEarnings: z.number().nullable(),
+    priceToEarnings: z.number().positive().nullable(),
   }),
   signals: z.array(z.string().min(1)),
   caveats: z.array(z.string().min(1)),
@@ -22,4 +22,5 @@ export const opportunityListSchema = z.object({
   opportunities: z.array(opportunitySchema),
 });
 
+export type Opportunity = z.infer<typeof opportunitySchema>;
 export type OpportunityList = z.infer<typeof opportunityListSchema>;
