@@ -1,5 +1,9 @@
 import { afterAll, describe, expect, it, vi } from 'vitest';
-import { marketSnapshotSchema } from '../../src/contracts/market.ts';
+import { anomalyListSchema } from '../../src/contracts/anomalies.ts';
+import {
+  marketSnapshotSchema,
+  priceHistorySchema,
+} from '../../src/contracts/market.ts';
 import { marketStreamEventSchema } from '../../src/contracts/marketStream.ts';
 import { opportunityListSchema } from '../../src/contracts/opportunities.ts';
 import {
@@ -10,6 +14,7 @@ import {
 } from '../test/syntheticData.ts';
 import { createMockServer } from './app.ts';
 import { REPLAY_START } from './config.ts';
+import { replayStatusSchema } from '../../src/contracts/replay.ts';
 
 const startedAtMs = 1_000_000;
 let realTimeMs = startedAtMs;
@@ -78,6 +83,76 @@ describe('mock server', () => {
     expect(opportunityList.opportunities.map(({ symbol }) => symbol)).toEqual([
       'TEST',
     ]);
+  });
+
+  it('serves the price history recorded until the replay position', async () => {
+    const response = await app.inject({
+      url: '/api/market/history?symbol=TEST',
+    });
+
+    const priceHistory = priceHistorySchema.parse(response.json());
+    expect(priceHistory.asOf).toBe(REPLAY_START);
+    expect(priceHistory.points).toEqual([
+      { time: '2026-11-03T21:00:00.000Z', price: 100, volume: 1000 },
+    ]);
+  });
+
+  it('rejects price history requests without a known symbol', async () => {
+    const missingSymbol = await app.inject({ url: '/api/market/history' });
+    const unknownSymbol = await app.inject({
+      url: '/api/market/history?symbol=UNKNOWN',
+    });
+
+    expect(missingSymbol.statusCode).toBe(400);
+    expect(unknownSymbol.statusCode).toBe(404);
+  });
+
+  it('serves anomalies that match the API contract', async () => {
+    const response = await app.inject({ url: '/api/market/anomalies' });
+
+    const anomalyList = anomalyListSchema.parse(response.json());
+    expect(anomalyList.asOf).toBe(REPLAY_START);
+    expect(anomalyList.anomalies).toEqual([]);
+  });
+
+  it('rejects invalid replay controls', async () => {
+    const unknownSpeed = await app.inject({
+      method: 'PATCH',
+      url: '/api/replay',
+      payload: { speedMultiplier: 7 },
+    });
+    const outsideWindow = await app.inject({
+      method: 'PATCH',
+      url: '/api/replay',
+      payload: { marketTime: '2026-11-08T00:00:00.000Z' },
+    });
+
+    expect(unknownSpeed.statusCode).toBe(400);
+    expect(outsideWindow.statusCode).toBe(400);
+  });
+
+  it('pauses, moves, and resumes the replay', async () => {
+    const pausedAndMoved = await app.inject({
+      method: 'PATCH',
+      url: '/api/replay',
+      payload: { isPaused: true, marketTime: '2026-11-04T00:05:00.000Z' },
+    });
+    const pausedStatus = replayStatusSchema.parse(pausedAndMoved.json());
+    const snapshot = marketSnapshotSchema.parse(
+      (await app.inject({ url: '/api/market/snapshot' })).json(),
+    );
+    await app.inject({
+      method: 'PATCH',
+      url: '/api/replay',
+      payload: { isPaused: false, marketTime: REPLAY_START },
+    });
+
+    expect(pausedStatus).toMatchObject({
+      asOf: '2026-11-04T00:05:00.000Z',
+      dataSource: { isPaused: true, speedMultiplier: 300 },
+    });
+    expect(snapshot.dataSource.isPaused).toBe(true);
+    expect(snapshot.quotes[0]?.price).toBe(101);
   });
 
   it('streams contract-valid events and releases disconnected clients', async () => {

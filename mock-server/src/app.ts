@@ -1,7 +1,13 @@
 import Fastify, { type FastifyInstance } from 'fastify';
-import type { DataSource } from '../../src/contracts/market.ts';
+import type { AnomalyList } from '../../src/contracts/anomalies.ts';
+import type { DataSource, PriceHistory } from '../../src/contracts/market.ts';
+import {
+  replayControlSchema,
+  type ReplayStatus,
+} from '../../src/contracts/replay.ts';
 import type { MarketStreamEvent } from '../../src/contracts/marketStream.ts';
 import {
+  REPLAY_BOOKMARKS,
   REPLAY_END,
   REPLAY_SPEED_MULTIPLIER,
   REPLAY_START,
@@ -9,7 +15,11 @@ import {
 } from './config.ts';
 import type { DemoInstrument } from './instruments.ts';
 import { createMarketSnapshot } from './marketSnapshot.ts';
-import { createMarketStream, type MarketStream } from './marketStream.ts';
+import {
+  collectAnomaliesUntil,
+  createMarketStream,
+  type MarketStream,
+} from './marketStream.ts';
 import { buildMarketTimeline } from './marketTimeline.ts';
 import { createOpportunityList } from './opportunities.ts';
 import { createReplayClock } from './replayClock.ts';
@@ -49,18 +59,21 @@ export function createMockServer({
     now,
   });
 
+  const marketProviders = [recordedMarketData.provider];
+  const opportunityProviders = [
+    recordedMarketData.provider,
+    fundamentals.provider,
+  ];
   const replayDataSource = (providers: string[]): DataSource => ({
     kind: 'historical-replay',
     providers,
     replayStart: REPLAY_START,
     replayEnd: REPLAY_END,
-    speedMultiplier: REPLAY_SPEED_MULTIPLIER,
+    ...clock.playback(),
+    bookmarks: REPLAY_BOOKMARKS,
   });
-  const marketDataSource = replayDataSource([recordedMarketData.provider]);
-  const opportunityDataSource = replayDataSource([
-    recordedMarketData.provider,
-    fundamentals.provider,
-  ]);
+  const currentMarketTime = () =>
+    new Date(clock.positionAt(now()).marketTimeMs).toISOString();
 
   const app = Fastify({
     logger: { level: 'warn' },
@@ -73,10 +86,76 @@ export function createMockServer({
         instruments,
         timeline,
         clock.positionAt(now()).marketTimeMs,
-        marketDataSource,
+        replayDataSource(marketProviders),
       ),
     ),
   );
+
+  app.get<{ Querystring: { symbol?: string } }>(
+    '/api/market/history',
+    (request, reply) => {
+      const { symbol } = request.query;
+      if (!symbol) {
+        return reply
+          .code(400)
+          .send({ message: 'The symbol query parameter is required' });
+      }
+      const pricePoints = timeline.pricePointsBySymbol.get(symbol);
+      if (!pricePoints) {
+        return reply
+          .code(404)
+          .send({ message: `Unknown instrument: ${symbol}` });
+      }
+
+      const { marketTimeMs } = clock.positionAt(now());
+      return reply.send({
+        asOf: new Date(marketTimeMs).toISOString(),
+        dataSource: replayDataSource(marketProviders),
+        symbol,
+        points: pricePoints.filter(
+          ({ time }) => Date.parse(time) <= marketTimeMs,
+        ),
+      } satisfies PriceHistory);
+    },
+  );
+
+  app.get('/api/market/anomalies', (_request, reply) => {
+    const position = clock.positionAt(now());
+    return reply.send({
+      asOf: new Date(position.marketTimeMs).toISOString(),
+      dataSource: replayDataSource(marketProviders),
+      anomalies: collectAnomaliesUntil(timeline, clock.startMs, position),
+    } satisfies AnomalyList);
+  });
+
+  app.patch('/api/replay', (request, reply) => {
+    const parsedControl = replayControlSchema.safeParse(request.body);
+    if (!parsedControl.success) {
+      return reply.code(400).send({
+        message: parsedControl.error.issues
+          .map(({ message }) => message)
+          .join('; '),
+      });
+    }
+    const { marketTime, ...playbackChange } = parsedControl.data;
+    const marketTimeMs =
+      marketTime === undefined ? undefined : Date.parse(marketTime);
+    if (
+      marketTimeMs !== undefined &&
+      (marketTimeMs < clock.startMs || marketTimeMs >= clock.endMs)
+    ) {
+      return reply.code(400).send({
+        message: `Market time must be within ${REPLAY_START} – ${REPLAY_END}`,
+      });
+    }
+
+    clock.change({ ...playbackChange, marketTimeMs }, now());
+    marketStream.announceReplayChange();
+    return reply.send({
+      asOf: currentMarketTime(),
+      dataSource: replayDataSource(marketProviders),
+    } satisfies ReplayStatus);
+  });
 
   app.get('/api/opportunities', (_request, reply) =>
     reply.send(
@@ -85,7 +164,7 @@ export function createMockServer({
         recordedMarketData,
         fundamentals,
         marketTimeMs: clock.positionAt(now()).marketTimeMs,
-        dataSource: opportunityDataSource,
+        dataSource: replayDataSource(opportunityProviders),
       }),
     ),
   );

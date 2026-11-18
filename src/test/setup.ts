@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest';
-import { cleanup } from '@testing-library/react';
-import { afterEach, vi } from 'vitest';
+import { cleanup, configure } from '@testing-library/react';
+import { afterEach, beforeEach, vi } from 'vitest';
+import { FakeEventSource } from './fakeEventSource.ts';
 
 // jsdom does not implement matchMedia; tests run with a light system color scheme.
 Object.defineProperty(window, 'matchMedia', {
@@ -12,6 +13,14 @@ Object.defineProperty(window, 'matchMedia', {
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
   }),
+});
+
+// Lazily loaded routes can take longer than the default second on a busy machine.
+configure({ asyncUtilTimeout: 3000 });
+
+beforeEach(() => {
+  FakeEventSource.instances = [];
+  vi.stubGlobal('EventSource', FakeEventSource);
 });
 
 afterEach(() => {

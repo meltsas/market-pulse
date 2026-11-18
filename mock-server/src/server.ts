@@ -24,7 +24,7 @@ async function readRecordedMarketData() {
   } catch (error) {
     if (isMissingFileError(error)) {
       console.error(
-        'Recorded market data is missing. Run `npm run mock-server:record` first (see README).',
+        'Recorded market data is missing. Run `npm run mock-server:record-prices` once (see README).',
       );
       process.exit(1);
     }

@@ -1,0 +1,94 @@
+@use '../../styles/mixins';
+
+.panel {
+  @include mixins.card;
+
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-2) var(--space-3);
+}
+
+.heading {
+  padding: 0 var(--space-3);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+}
+
+.groupHeading {
+  padding: var(--space-3) var(--space-3) var(--space-1);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-caps);
+  color: var(--color-text-subtle);
+  text-transform: uppercase;
+}
+
+.list {
+  display: grid;
+  gap: 2px;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  text-decoration: none;
+  transition: background-color var(--duration-fast) var(--easing-standard);
+
+  &:hover {
+    background-color: var(--color-surface-hover);
+  }
+
+  &[aria-current='page'] {
+    background-color: var(--color-accent-subtle);
+
+    &::before {
+      position: absolute;
+      top: var(--space-2);
+      bottom: var(--space-2);
+      left: 0;
+      width: 3px;
+      border-radius: var(--radius-full);
+      background-color: var(--color-accent);
+      content: '';
+    }
+  }
+}
+
+.identity {
+  display: grid;
+  min-width: 0;
+}
+
+.symbol {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.name {
+  overflow: hidden;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.quote {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+}
+
+.price {
+  padding: 0 var(--space-1);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}

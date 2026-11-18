@@ -1,0 +1,181 @@
+@use '../../styles/mixins';
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  border-top: var(--border-width) solid var(--color-border);
+  background-color: var(--color-surface);
+}
+
+.transport {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+%control-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: var(--border-width) solid var(--color-border);
+  color: var(--color-text);
+  background-color: var(--color-surface);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard);
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-border-strong);
+    background-color: var(--color-surface-hover);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+.iconButton {
+  @extend %control-button;
+
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-full);
+}
+
+.playButton {
+  @extend %control-button;
+
+  width: 2.75rem;
+  height: 2.75rem;
+  border-color: var(--color-accent);
+  border-radius: var(--radius-full);
+  color: var(--color-on-accent);
+  background-color: var(--color-accent);
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-accent-hover);
+    background-color: var(--color-accent-hover);
+  }
+}
+
+.timeline {
+  display: grid;
+  flex: 1 1 18rem;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.slider {
+  width: 100%;
+  margin: 0;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.days {
+  display: flex;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+
+  span {
+    flex: 1;
+    padding-left: 2px;
+    border-left: var(--border-width) solid var(--color-border);
+  }
+}
+
+.speed {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: none;
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+.speedLegend {
+  float: left;
+  margin-right: var(--space-2);
+  padding: 0;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-caps);
+  color: var(--color-text-subtle);
+  text-transform: uppercase;
+}
+
+.speedOptions {
+  display: inline-flex;
+  padding: 2px;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-muted);
+}
+
+.speedOption {
+  position: relative;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+  cursor: pointer;
+
+  &:has(:checked) {
+    color: var(--color-text);
+    background-color: var(--color-surface);
+    box-shadow: var(--shadow-sm);
+  }
+
+  &:has(:focus-visible) {
+    outline: var(--focus-ring-width) solid var(--color-focus-ring);
+    outline-offset: 1px;
+  }
+
+  .speed:disabled & {
+    cursor: not-allowed;
+  }
+}
+
+.speedRadio {
+  @include mixins.visually-hidden;
+}
+
+.bookmarkButton {
+  @extend %control-button;
+
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-color: var(--color-warning);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-warning);
+  background-color: var(--color-warning-subtle);
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-warning);
+    background-color: var(--color-warning-subtle);
+    filter: brightness(0.97);
+  }
+}
+
+.error {
+  flex-basis: 100%;
+  font-size: var(--font-size-sm);
+  color: var(--color-negative);
+}

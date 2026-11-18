@@ -1,0 +1,155 @@
+@use '../../styles/mixins';
+
+.panel {
+  @include mixins.card;
+
+  display: grid;
+  gap: var(--space-5);
+  padding: var(--space-5);
+  min-width: 0;
+
+  @media (min-width: 40rem) {
+    padding: var(--space-6);
+  }
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  justify-self: start;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+
+  @media (min-width: 64rem) {
+    display: none;
+  }
+}
+
+.header {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.titleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.name {
+  margin-right: var(--space-1);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+}
+
+.chip {
+  padding: 0.125rem var(--space-2);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}
+
+.priceRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2) var(--space-3);
+}
+
+.price {
+  margin-left: calc(-1 * var(--space-1));
+  padding: 0 var(--space-1);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.change {
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+
+  &[data-direction='up'] {
+    color: var(--color-positive);
+  }
+
+  &[data-direction='down'] {
+    color: var(--color-negative);
+  }
+}
+
+.timestamp {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-border);
+}
+
+.stat {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-surface);
+
+  dt {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+
+  dd {
+    font-weight: var(--font-weight-semibold);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.chartFigure {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.chartPlaceholder {
+  display: grid;
+  place-items: center;
+  height: 24rem;
+  color: var(--color-text-muted);
+
+  @media (max-width: 40rem) {
+    height: 18rem;
+  }
+}
+
+.chartSkeleton {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-md);
+  background-color: var(--color-skeleton);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.caption {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+}
+
+@keyframes skeleton-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}

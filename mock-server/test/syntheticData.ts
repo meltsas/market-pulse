@@ -26,6 +26,7 @@ export const testIndex: DemoInstrument = {
 export function createIntradayBars(
   firstBarStart: string,
   closes: readonly number[],
+  volume = 1000,
 ): IntradayBar[] {
   return closes.map((close, index) => ({
     start: new Date(
@@ -35,8 +36,23 @@ export function createIntradayBars(
     high: close,
     low: close,
     close,
-    volume: 1000,
+    volume,
   }));
+}
+
+export function createConsecutiveDailyBars(
+  firstDate: string,
+  count: number,
+  close: number,
+): DailyBar[] {
+  return Array.from({ length: count }, (_, index) =>
+    createDailyBar(
+      new Date(Date.parse(firstDate) + index * 86_400_000)
+        .toISOString()
+        .slice(0, 10),
+      close,
+    ),
+  );
 }
 
 export function createDailyBar(

@@ -1,0 +1,25 @@
+@use '../../styles/mixins';
+
+.section {
+  @include mixins.card;
+
+  display: grid;
+  gap: var(--space-5);
+  max-width: 48rem;
+  padding: var(--space-6);
+}
+
+.sectionIntro {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.sectionDescription {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}

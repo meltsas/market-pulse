@@ -1,0 +1,64 @@
+@use '../../styles/mixins';
+
+.badge {
+  --status-color: var(--color-text-muted);
+
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--status-color);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+
+  &[data-tone='positive'] {
+    --status-color: var(--color-positive);
+  }
+
+  &[data-tone='warning'] {
+    --status-color: var(--color-warning);
+  }
+
+  &[data-tone='negative'] {
+    --status-color: var(--color-negative);
+  }
+}
+
+.dot {
+  position: relative;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--status-color);
+
+  @media (prefers-reduced-motion: no-preference) {
+    [data-tone='positive'] > &::after {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background-color: var(--status-color);
+      animation: live-pulse 1.8s ease-out infinite;
+      content: '';
+    }
+  }
+}
+
+.prefix {
+  @include mixins.visually-hidden;
+}
+
+@keyframes live-pulse {
+  from {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}

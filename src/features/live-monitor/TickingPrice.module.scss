@@ -1,0 +1,28 @@
+.price {
+  border-radius: var(--radius-sm);
+  font-variant-numeric: tabular-nums;
+
+  @media (prefers-reduced-motion: no-preference) {
+    &[data-tick='up'] {
+      animation: tick-up 900ms var(--easing-standard);
+    }
+
+    &[data-tick='down'] {
+      animation: tick-down 900ms var(--easing-standard);
+    }
+  }
+}
+
+@keyframes tick-up {
+  from {
+    color: var(--color-positive);
+    background-color: var(--color-positive-subtle);
+  }
+}
+
+@keyframes tick-down {
+  from {
+    color: var(--color-negative);
+    background-color: var(--color-negative-subtle);
+  }
+}

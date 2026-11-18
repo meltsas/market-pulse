@@ -1,20 +1,33 @@
 import { render, screen } from '@testing-library/react';
+import { Provider } from 'react-redux';
 import { createMemoryRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { routes } from './routes.tsx';
+import { createAppStore } from './store.ts';
 
 function renderAtPath(path: string) {
   const router = createMemoryRouter(routes, { initialEntries: [path] });
-  render(<RouterProvider router={router} />);
+  render(
+    <Provider store={createAppStore()}>
+      <RouterProvider router={router} />
+    </Provider>,
+  );
   return router;
 }
 
 describe('routes', () => {
+  beforeAll(async () => {
+    // Live Monitor loads lazily; importing it once keeps its first render within the default wait time.
+    await import('../features/live-monitor/LiveMonitorPage.tsx');
+  });
+
   it.each([
     ['/opportunities', 'Opportunity Radar'],
     ['/live-monitor', 'Live Market Monitor'],
+    ['/live-monitor/NVDA', 'Live Market Monitor'],
     ['/watchlist', 'Watchlist'],
+    ['/settings', 'Settings'],
   ])('renders %s inside the shared layout', async (path, pageHeading) => {
     renderAtPath(path);
 
@@ -38,15 +51,23 @@ describe('routes', () => {
     expect(router.state.location.pathname).toBe('/opportunities');
   });
 
-  it('marks the current page in the main navigation', async () => {
-    renderAtPath('/watchlist');
+  it('marks the current page in the navigation', async () => {
+    renderAtPath('/settings');
 
     expect(
-      await screen.findByRole('link', { name: 'Watchlist' }),
+      await screen.findByRole('link', { name: 'Settings' }),
     ).toHaveAttribute('aria-current', 'page');
     expect(
       screen.getByRole('link', { name: 'Opportunities' }),
     ).not.toHaveAttribute('aria-current');
+  });
+
+  it('keeps Live Monitor active while an instrument is selected', async () => {
+    renderAtPath('/live-monitor/NVDA');
+
+    expect(
+      await screen.findByRole('link', { name: 'Live Monitor' }),
+    ).toHaveAttribute('aria-current', 'page');
   });
 
   it('shows a not found page for unknown paths', async () => {

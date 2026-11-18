@@ -1,0 +1,112 @@
+@use '../../styles/mixins';
+
+$two-column-min-width: 64rem;
+$three-column-min-width: 110rem;
+
+.streamAlert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width) solid var(--color-warning);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  background-color: var(--color-warning-subtle);
+
+  svg {
+    margin-top: 2px;
+    color: var(--color-warning);
+  }
+}
+
+.workspace {
+  display: grid;
+  grid-template-areas:
+    'list'
+    'feed';
+  gap: var(--space-5);
+
+  &[data-view='detail'] {
+    grid-template-areas: 'detail';
+  }
+
+  @media (max-width: calc($two-column-min-width - 0.02rem)) {
+    &[data-view='overview'] > .detailArea,
+    &[data-view='detail'] > .listArea,
+    &[data-view='detail'] > .feedArea {
+      display: none;
+    }
+  }
+
+  @media (min-width: $two-column-min-width) {
+    &,
+    &[data-view='detail'] {
+      grid-template-areas:
+        'list detail'
+        'list feed';
+      grid-template-columns: minmax(16rem, 19rem) minmax(0, 1fr);
+      grid-template-rows: auto 1fr;
+      align-items: start;
+    }
+  }
+
+  @media (min-width: $three-column-min-width) {
+    &,
+    &[data-view='detail'] {
+      grid-template-areas: 'list detail feed';
+      grid-template-columns: minmax(16rem, 19rem) minmax(0, 1fr) minmax(
+          20rem,
+          24rem
+        );
+      grid-template-rows: auto;
+    }
+  }
+}
+
+.listArea {
+  grid-area: list;
+  min-width: 0;
+
+  @media (min-width: $two-column-min-width) {
+    position: sticky;
+    top: var(--space-6);
+  }
+}
+
+.detailArea {
+  grid-area: detail;
+  min-width: 0;
+}
+
+.feedArea {
+  grid-area: feed;
+  min-width: 0;
+
+  @media (min-width: $three-column-min-width) {
+    position: sticky;
+    top: var(--space-6);
+  }
+}
+
+.loadingText {
+  @include mixins.visually-hidden;
+}
+
+.skeletonPanel {
+  min-height: 28rem;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-skeleton);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes skeleton-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}

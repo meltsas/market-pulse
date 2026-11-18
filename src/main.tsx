@@ -5,6 +5,7 @@ import { createBrowserRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
 import { routes } from './app/routes.tsx';
 import { createAppStore } from './app/store.ts';
+import '@fontsource-variable/inter';
 import './styles/global.scss';
 
 const rootElement = document.getElementById('root');

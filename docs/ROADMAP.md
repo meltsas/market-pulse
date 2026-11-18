@@ -68,17 +68,22 @@ Data licensing: Yahoo Finance prices are recorded locally into a gitignored fold
 
 **Goal:** complete a meaningful real-time frontend workflow.
 
-- [ ] Fetch the initial market snapshot through RTK Query.
-- [ ] Build an instrument list and detail view with price, change, timestamp, and data-source labeling.
-- [ ] Show a persistent demo-data notice whenever mock data is displayed: replay window, speed, current market date and time with time zone, and data providers.
-- [ ] Subscribe to SSE using a dedicated service or Hook; validate incoming events with Zod.
-- [ ] Draw a price history chart for the selected instrument; choose a charting library when needed.
-- [ ] Show anomaly alerts with clear, explainable detection reasons.
-- [ ] Add a relative volume spike rule to the mock server detector; a 30-minute price-move rule exists since Phase 2.
-- [ ] Display connecting, connected, reconnecting, disconnected, and stale-data states.
-- [ ] On reconnection, avoid losing events between the snapshot request and the live subscription. Refresh the snapshot if event continuity cannot be guaranteed.
-- [ ] Avoid unnecessary full-dashboard renders; measure before optimizing or adding memoization.
-- [ ] Test event validation, connection cleanup, anomaly rules, and reconnection behavior.
+- [x] Fetch the initial market snapshot through RTK Query, plus price history (`GET /api/market/history`) and detected anomalies (`GET /api/market/anomalies`).
+- [x] Build an instrument list and detail view with price, change, timestamp, and data-source labeling. The selected instrument is part of the URL (`/live-monitor/NVDA`); narrow screens show the list and the detail one at a time.
+- [x] Show a persistent demo-data notice whenever mock data is displayed: replay window, speed, current market date and time with time zone, and data providers.
+- [x] Subscribe to SSE using a dedicated service or Hook; validate incoming events with Zod.
+- [x] Draw a price history chart for the selected instrument with TradingView Lightweight Charts: 5-minute closes, volume, the previous close, and alert markers.
+- [x] Show anomaly alerts with clear, explainable detection reasons: each alert states the rule that triggered it.
+- [x] Add a relative volume rule to the mock server detector: a stock's session volume reaches 1.5× its 20-day average daily volume.
+- [x] Display connecting, connected, reconnecting, disconnected, and stale-data states. A `replay.clock` event every second lets the client reconnect when the stream goes silent.
+- [x] On reconnection, avoid losing events between the snapshot request and the live subscription. Market data is fetched only after the stream opens, events arriving during the fetch are applied afterwards, and events never move cached data backwards.
+- [x] Avoid unnecessary full-dashboard renders: each component subscribes to its own part of the cache; no memoization was needed.
+- [x] Test event validation, connection cleanup, anomaly rules, and reconnection behavior.
+- [x] Control the replay from the demo notice: pause and resume, move to any moment of the recorded period, choose a speed (60×, 150×, 300×, or 900×), and jump to a bookmarked moment such as the 5 November sell-off. The replay clock lives in the mock API (`PATCH /api/replay`), so all open tabs follow the same replay.
+- [x] Let viewers reset the chart view after zooming or scrolling.
+- [x] Start the UI and the mock API with one command (`npm run dev`).
+
+Data note: Yahoo Finance has no intraday bars for US instruments and EUR/USD between 17:15 and 18:50 UTC on 5 November 2026. The chart joins the bars on either side of the gap, the volume of the first bar after it is left out because it covers the whole gap, and no price move is attributed to the missing period.
 
 **Acceptance:** the demo displays a changing market, detects an anomaly, and handles a disconnected/reconnected stream without corrupting displayed data.
 
@@ -131,7 +136,7 @@ Data licensing: Yahoo Finance prices are recorded locally into a gitignored fold
 
 ## Possible later enhancements — not MVP commitments
 
-- **Replay Mode:** play recorded market scenarios at adjustable speed to reproduce anomalies.
+- **Per-viewer replay:** give each visitor an independent replay clock if the demo is ever deployed publicly; the mock API currently shares one clock.
 - **Custom alerts:** instrument-specific rules, deduplication, and notification preferences.
 - **Earnings Detective:** compare fundamental metrics across reporting periods.
 - **Thesis Guardian:** track whether the original investment rationale still holds.

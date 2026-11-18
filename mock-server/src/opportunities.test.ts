@@ -16,6 +16,8 @@ const dataSource: DataSource = {
   replayStart: '2026-11-04T00:00:00.000Z',
   replayEnd: '2026-11-07T00:00:00.000Z',
   speedMultiplier: 300,
+  isPaused: false,
+  bookmarks: [],
 };
 
 const dailyBarsWithDrawdown = [

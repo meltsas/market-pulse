@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { anomalyDetectedEventSchema } from './anomalies.ts';
 import { quoteSchema, utcTimestampSchema } from './market.ts';
 
 const streamEventBaseSchema = z.object({
@@ -10,31 +11,36 @@ const streamEventBaseSchema = z.object({
 const quoteUpdatedEventSchema = streamEventBaseSchema.extend({
   type: z.literal('quote.updated'),
   quote: quoteSchema,
-});
-
-const anomalyDetectedEventSchema = streamEventBaseSchema.extend({
-  type: z.literal('anomaly.detected'),
-  anomaly: z.object({
-    symbol: z.string().min(1),
-    kind: z.literal('price-move'),
-    changePercent: z.number(),
-    referencePrice: z.number().positive(),
-    referenceTime: utcTimestampSchema,
-    price: z.number().positive(),
-    description: z.string().min(1),
-  }),
+  // Volume traded during the bar that produced this quote; null when the source has no reliable volume.
+  barVolume: z.number().int().nonnegative().nullable(),
 });
 
 const replayRestartedEventSchema = streamEventBaseSchema.extend({
   type: z.literal('replay.restarted'),
 });
 
+// The replay was paused, resumed, moved, or sped up; earlier data may no longer apply.
+const replayChangedEventSchema = streamEventBaseSchema.extend({
+  type: z.literal('replay.changed'),
+});
+
+// Sent every tick, so clients can follow market time and notice a silent connection.
+const replayClockEventSchema = streamEventBaseSchema.extend({
+  type: z.literal('replay.clock'),
+});
+
 export const marketStreamEventSchema = z.discriminatedUnion('type', [
   quoteUpdatedEventSchema,
   anomalyDetectedEventSchema,
   replayRestartedEventSchema,
+  replayChangedEventSchema,
+  replayClockEventSchema,
 ]);
 
+export const marketStreamEventTypes = marketStreamEventSchema.options.map(
+  (eventSchema) => eventSchema.shape.type.value,
+);
+
 export type QuoteUpdatedEvent = z.infer<typeof quoteUpdatedEventSchema>;
-export type AnomalyDetectedEvent = z.infer<typeof anomalyDetectedEventSchema>;
+export type ReplayClockEvent = z.infer<typeof replayClockEventSchema>;
 export type MarketStreamEvent = z.infer<typeof marketStreamEventSchema>;
