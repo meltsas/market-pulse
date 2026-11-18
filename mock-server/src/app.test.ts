@@ -5,7 +5,10 @@ import {
   priceHistorySchema,
 } from '../../src/contracts/market.ts';
 import { marketStreamEventSchema } from '../../src/contracts/marketStream.ts';
-import { opportunityListSchema } from '../../src/contracts/opportunities.ts';
+import {
+  dailyHistorySchema,
+  opportunityListSchema,
+} from '../../src/contracts/opportunities.ts';
 import {
   createDailyBar,
   createFundamentals,
@@ -85,6 +88,27 @@ describe('mock server', () => {
     ]);
   });
 
+  it('serves daily history up to the latest screening', async () => {
+    const response = await app.inject({
+      url: '/api/market/daily-history?symbol=TEST',
+    });
+    const missingSymbol = await app.inject({
+      url: '/api/market/daily-history',
+    });
+    const unknownSymbol = await app.inject({
+      url: '/api/market/daily-history?symbol=UNKNOWN',
+    });
+
+    const dailyHistory = dailyHistorySchema.parse(response.json());
+    expect(dailyHistory.bars.map(({ date }) => date)).toEqual([
+      '2026-06-01',
+      '2026-11-02',
+      '2026-11-03',
+    ]);
+    expect(missingSymbol.statusCode).toBe(400);
+    expect(unknownSymbol.statusCode).toBe(404);
+  });
+
   it('serves the price history recorded until the replay position', async () => {
     const response = await app.inject({
       url: '/api/market/history?symbol=TEST',
@@ -113,6 +137,19 @@ describe('mock server', () => {
     const anomalyList = anomalyListSchema.parse(response.json());
     expect(anomalyList.asOf).toBe(REPLAY_START);
     expect(anomalyList.anomalies).toEqual([]);
+  });
+
+  it('describes the replay and every data provider it uses', async () => {
+    const response = await app.inject({ url: '/api/replay' });
+
+    expect(replayStatusSchema.parse(response.json())).toMatchObject({
+      asOf: REPLAY_START,
+      dataSource: {
+        providers: ['Test provider', 'SEC EDGAR'],
+        isPaused: false,
+        speedMultiplier: 300,
+      },
+    });
   });
 
   it('rejects invalid replay controls', async () => {

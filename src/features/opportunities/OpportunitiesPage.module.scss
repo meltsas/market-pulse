@@ -1,0 +1,48 @@
+@use '../../styles/mixins';
+
+.visuallyHidden {
+  @include mixins.visually-hidden;
+}
+
+.content {
+  display: grid;
+  gap: var(--space-4);
+  container: opportunity-content / inline-size;
+}
+
+.screeningNote {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-top: var(--border-width) solid var(--color-border);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  background-color: var(--color-surface);
+
+  svg {
+    color: var(--color-accent);
+  }
+}
+
+.resultCount {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.skeleton {
+  min-height: 32rem;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-skeleton);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes skeleton-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}

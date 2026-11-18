@@ -1,21 +1,19 @@
 import { RefreshCw, Unplug, WifiOff } from 'lucide-react';
 import { useParams } from 'react-router';
 import { marketPulseApi } from '../../api/marketPulseApi.ts';
-import { useAppDispatch } from '../../app/hooks.ts';
+import { useAppDispatch, useAppSelector } from '../../app/hooks.ts';
 import buttonStyles from '../../components/Button.module.scss';
-import { DemoDataNotice } from '../../components/DemoDataNotice.tsx';
 import { EmptyState } from '../../components/EmptyState.tsx';
 import { PageHeader } from '../../components/PageHeader.tsx';
 import { AnomalyFeed } from './AnomalyFeed.tsx';
-import { ConnectionStatusBadge } from './ConnectionStatusBadge.tsx';
 import { InstrumentDetail } from './InstrumentDetail.tsx';
 import { InstrumentList } from './InstrumentList.tsx';
-import { refetchLiveMarketData } from './liveMarketCache.ts';
+import { refetchCachedMarketData } from '../market-stream/liveMarketCache.ts';
+import type { ConnectionStatus } from '../market-stream/marketStreamConnection.ts';
+import { selectConnectionStatus } from '../market-stream/marketStreamSlice.ts';
+import { ReplayPanel } from '../replay/ReplayPanel.tsx';
 import styles from './LiveMonitorPage.module.scss';
-import { ReplayControls } from './ReplayControls.tsx';
 import { DEFAULT_SYMBOL } from './liveMonitorDefaults.ts';
-import type { ConnectionStatus } from './marketStreamConnection.ts';
-import { useMarketStream } from './useMarketStream.ts';
 
 const { getMarketSnapshot, getAnomalies, getPriceHistory } =
   marketPulseApi.endpoints;
@@ -23,8 +21,8 @@ const { getMarketSnapshot, getAnomalies, getPriceHistory } =
 export function LiveMonitorPage() {
   const { symbol } = useParams();
   const selectedSymbol = symbol ?? DEFAULT_SYMBOL;
-  const connectionStatus = useMarketStream();
-  // Waiting for the stream first means no event can slip between a REST response and the subscription.
+  const connectionStatus = useAppSelector(selectConnectionStatus);
+  // On first load, waiting for the stream means no event can slip between a REST response and the subscription.
   const skip = connectionStatus === 'connecting';
   getMarketSnapshot.useQuerySubscription(undefined, { skip });
   getAnomalies.useQuerySubscription(undefined, { skip });
@@ -35,8 +33,8 @@ export function LiveMonitorPage() {
       <PageHeader
         title="Live Market Monitor"
         description="Follow selected instruments and spot unusual price or volume activity as it happens."
-        actions={<ConnectionStatusBadge connectionStatus={connectionStatus} />}
       />
+      <ReplayPanel />
       <LiveMonitorContent
         selectedSymbol={selectedSymbol}
         hasSelectedSymbol={symbol !== undefined}
@@ -72,13 +70,13 @@ function LiveMonitorContent({
         icon={WifiOff}
         tone="warning"
         title="Market data is unavailable"
-        description="The demo API did not respond. Make sure the mock API is running (npm run mock-server), then try again."
+        description="The demo API did not respond. Make sure the mock API is running (npm run dev), then try again."
       >
         <button
           type="button"
           className={buttonStyles.primary}
           onClick={() => {
-            void dispatch(refetchLiveMarketData());
+            void dispatch(refetchCachedMarketData());
           }}
         >
           <RefreshCw size={16} aria-hidden="true" />
@@ -97,7 +95,6 @@ function LiveMonitorContent({
 
   return (
     <>
-      <ReplayNotice areControlsDisabled={connectionStatus !== 'connected'} />
       {isUpdatePaused && (
         <div className={styles.streamAlert} role="alert">
           <Unplug size={18} aria-hidden="true" />
@@ -123,34 +120,6 @@ function LiveMonitorContent({
         </div>
       </div>
     </>
-  );
-}
-
-interface ReplayNoticeProps {
-  areControlsDisabled: boolean;
-}
-
-function ReplayNotice({ areControlsDisabled }: ReplayNoticeProps) {
-  const { dataSource, marketTime } = getMarketSnapshot.useQueryState(
-    undefined,
-    {
-      selectFromResult: ({ data }) => ({
-        dataSource: data?.dataSource,
-        marketTime: data?.asOf,
-      }),
-    },
-  );
-  if (!dataSource || !marketTime) {
-    return null;
-  }
-  return (
-    <DemoDataNotice dataSource={dataSource} marketTime={marketTime}>
-      <ReplayControls
-        dataSource={dataSource}
-        marketTime={marketTime}
-        isDisabled={areControlsDisabled}
-      />
-    </DemoDataNotice>
   );
 }
 

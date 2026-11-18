@@ -7,10 +7,13 @@ import {
   sampleAnomalyList,
   sampleMarketSnapshot,
   sampleNvidiaHistory,
+  sampleOpportunityList,
+  sampleReplayStatus,
 } from '../../test/apiFixtures.ts';
+import { requestedPaths, stubApiResponses } from '../../test/renderApp.tsx';
 import {
   applyMarketStreamEvent,
-  refetchLiveMarketData,
+  refetchCachedMarketData,
 } from './liveMarketCache.ts';
 
 async function createStoreWithCachedData() {
@@ -135,7 +138,58 @@ describe('applyMarketStreamEvent', () => {
   });
 });
 
-describe('refetchLiveMarketData', () => {
+describe('replay clock', () => {
+  it('advances the replay status and reloads the screening when a new replayed day starts', async () => {
+    const { store } = await createStoreWithCachedData();
+    await Promise.all([
+      store.dispatch(
+        marketPulseApi.util.upsertQueryData(
+          'getReplayStatus',
+          undefined,
+          sampleReplayStatus,
+        ),
+      ),
+      store.dispatch(
+        marketPulseApi.util.upsertQueryData(
+          'getOpportunities',
+          undefined,
+          sampleOpportunityList,
+        ),
+      ),
+    ]);
+    const fetchMock = stubApiResponses({
+      '/api/opportunities': sampleOpportunityList,
+    });
+    const replayTime = () =>
+      marketPulseApi.endpoints.getReplayStatus.select(undefined)(
+        store.getState(),
+      ).data?.asOf;
+
+    store.dispatch(
+      applyMarketStreamEvent({
+        type: 'replay.clock',
+        id: 'clock-1',
+        occurredAt: '2026-11-05T23:55:00.000Z',
+      }),
+    );
+    expect(replayTime()).toBe('2026-11-05T23:55:00.000Z');
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    store.dispatch(
+      applyMarketStreamEvent({
+        type: 'replay.clock',
+        id: 'clock-2',
+        occurredAt: '2026-11-06T00:05:00.000Z',
+      }),
+    );
+
+    await vi.waitFor(() => {
+      expect(requestedPaths(fetchMock)).toEqual(['/api/opportunities']);
+    });
+  });
+});
+
+describe('refetchCachedMarketData', () => {
   it('refetches the snapshot, anomalies, and every cached price history', async () => {
     const { store } = await createStoreWithCachedData();
     const fetchMock = vi.fn<typeof fetch>((request) => {
@@ -151,7 +205,7 @@ describe('refetchLiveMarketData', () => {
     });
     vi.stubGlobal('fetch', fetchMock);
 
-    await store.dispatch(refetchLiveMarketData());
+    await store.dispatch(refetchCachedMarketData());
 
     const requestedUrls = fetchMock.mock.calls.map(([request]) =>
       request instanceof Request ? request.url : String(request),

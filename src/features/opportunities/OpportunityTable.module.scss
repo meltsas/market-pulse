@@ -1,0 +1,218 @@
+@use '../../styles/mixins';
+
+.tableFrame {
+  @include mixins.card;
+
+  overflow: hidden;
+  container: opportunity-table / inline-size;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.visuallyHidden {
+  @include mixins.visually-hidden;
+}
+
+.table thead th {
+  padding: var(--space-3) var(--space-2);
+  border-bottom: var(--border-width) solid var(--color-border);
+  font-weight: var(--font-weight-medium);
+  text-align: left;
+  white-space: nowrap;
+  background-color: var(--color-surface-muted);
+}
+
+.numericHeader {
+  text-align: right;
+
+  .sortButton {
+    flex-direction: row-reverse;
+  }
+}
+
+.watchHeader,
+.openHeader {
+  width: 2.5rem;
+}
+
+.sortButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-caps);
+  color: var(--color-text-subtle);
+  background: none;
+  text-transform: uppercase;
+  cursor: pointer;
+
+  svg {
+    opacity: 0.5;
+  }
+
+  &:hover {
+    color: var(--color-text);
+  }
+
+  &[data-active='true'] {
+    color: var(--color-accent);
+
+    svg {
+      opacity: 1;
+    }
+  }
+}
+
+.row {
+  position: relative;
+  border-bottom: var(--border-width) solid var(--color-border);
+  transition: background-color var(--duration-fast) var(--easing-standard);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: var(--color-surface-hover);
+  }
+
+  td,
+  th {
+    padding: var(--space-3) var(--space-2);
+    vertical-align: middle;
+  }
+
+  .watchCell {
+    padding-left: var(--space-3);
+  }
+}
+
+.instrumentCell {
+  font-weight: inherit;
+  text-align: left;
+}
+
+.instrumentLink {
+  display: grid;
+  min-width: 10rem;
+  color: var(--color-text);
+  text-decoration: none;
+
+  // Makes the whole row open the details while the watchlist button stays clickable.
+  &::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+  }
+
+  &:focus-visible {
+    outline: none;
+
+    &::after {
+      outline: var(--focus-ring-width) solid var(--color-focus-ring);
+      outline-offset: -2px;
+    }
+  }
+}
+
+.symbol {
+  font-weight: var(--font-weight-semibold);
+}
+
+.name {
+  overflow: hidden;
+  max-width: 14rem;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.metricCell {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.metric {
+  font-weight: var(--font-weight-medium);
+
+  &[data-tone='positive'] {
+    color: var(--color-positive);
+  }
+
+  &[data-tone='negative'] {
+    color: var(--color-negative);
+  }
+
+  &[data-tone='warning'] {
+    color: var(--color-warning);
+  }
+}
+
+.openCell {
+  color: var(--color-text-subtle);
+}
+
+@container opportunity-table (max-width: 56rem) {
+  .table,
+  .table tbody {
+    display: block;
+  }
+
+  .table thead {
+    @include mixins.visually-hidden;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-3) var(--space-4);
+    padding: var(--space-4);
+
+    td,
+    th,
+    .watchCell {
+      padding: 0;
+    }
+  }
+
+  .instrumentCell {
+    grid-column: span 2;
+    min-width: 0;
+  }
+
+  .instrumentLink {
+    min-width: 0;
+  }
+
+  .name {
+    max-width: none;
+  }
+
+  .metricCell {
+    display: grid;
+    grid-column: span 2;
+    gap: 2px;
+    text-align: left;
+
+    &::before {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-subtle);
+      content: attr(data-label);
+    }
+  }
+
+  .openCell {
+    display: none;
+  }
+}

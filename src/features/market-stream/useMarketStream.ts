@@ -1,22 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { API_BASE_URL } from '../../api/marketPulseApi.ts';
 import { useAppDispatch } from '../../app/hooks.ts';
 import type { MarketStreamEvent } from '../../contracts/marketStream.ts';
 import {
   applyMarketStreamEvent,
-  refetchLiveMarketData,
+  refetchCachedMarketData,
 } from './liveMarketCache.ts';
-import {
-  connectToMarketStream,
-  type ConnectionStatus,
-} from './marketStreamConnection.ts';
+import { connectToMarketStream } from './marketStreamConnection.ts';
+import { connectionStatusChanged } from './marketStreamSlice.ts';
 
 const MARKET_STREAM_URL = `${API_BASE_URL}/market/stream`;
 
-export function useMarketStream(): ConnectionStatus {
+// One connection serves the whole app, so every page shows the same replay clock and state.
+export function useMarketStream() {
   const dispatch = useAppDispatch();
-  const [connectionStatus, setConnectionStatus] =
-    useState<ConnectionStatus>('connecting');
 
   useEffect(() => {
     let isDisposed = false;
@@ -29,7 +26,7 @@ export function useMarketStream(): ConnectionStatus {
       latestResyncId += 1;
       const resyncId = latestResyncId;
       isResyncing = true;
-      await dispatch(refetchLiveMarketData());
+      await dispatch(refetchCachedMarketData());
       if (isDisposed || resyncId !== latestResyncId) {
         return;
       }
@@ -42,7 +39,9 @@ export function useMarketStream(): ConnectionStatus {
     }
 
     const disconnect = connectToMarketStream(MARKET_STREAM_URL, {
-      onStatusChange: setConnectionStatus,
+      onStatusChange: (connectionStatus) => {
+        dispatch(connectionStatusChanged(connectionStatus));
+      },
       onOpen: () => {
         void resync();
       },
@@ -65,6 +64,4 @@ export function useMarketStream(): ConnectionStatus {
       disconnect();
     };
   }, [dispatch]);
-
-  return connectionStatus;
 }

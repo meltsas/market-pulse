@@ -21,7 +21,7 @@ import {
   type MarketStream,
 } from './marketStream.ts';
 import { buildMarketTimeline } from './marketTimeline.ts';
-import { createOpportunityList } from './opportunities.ts';
+import { createDailyHistory, createOpportunityList } from './opportunities.ts';
 import { createReplayClock } from './replayClock.ts';
 import type { RecordedMarketData, SecFundamentals } from './recordedData.ts';
 
@@ -119,6 +119,27 @@ export function createMockServer({
     },
   );
 
+  app.get<{ Querystring: { symbol?: string } }>(
+    '/api/market/daily-history',
+    (request, reply) => {
+      const { symbol } = request.query;
+      if (!symbol) {
+        return reply
+          .code(400)
+          .send({ message: 'The symbol query parameter is required' });
+      }
+      const dailyHistory = createDailyHistory({
+        symbol,
+        recordedMarketData,
+        marketTimeMs: clock.positionAt(now()).marketTimeMs,
+        dataSource: replayDataSource(marketProviders),
+      });
+      return dailyHistory
+        ? reply.send(dailyHistory)
+        : reply.code(404).send({ message: `Unknown instrument: ${symbol}` });
+    },
+  );
+
   app.get('/api/market/anomalies', (_request, reply) => {
     const position = clock.positionAt(now());
     return reply.send({
@@ -127,6 +148,13 @@ export function createMockServer({
       anomalies: collectAnomaliesUntil(timeline, clock.startMs, position),
     } satisfies AnomalyList);
   });
+
+  app.get('/api/replay', (_request, reply) =>
+    reply.send({
+      asOf: currentMarketTime(),
+      dataSource: replayDataSource(opportunityProviders),
+    } satisfies ReplayStatus),
+  );
 
   app.patch('/api/replay', (request, reply) => {
     const parsedControl = replayControlSchema.safeParse(request.body);
@@ -153,7 +181,7 @@ export function createMockServer({
     marketStream.announceReplayChange();
     return reply.send({
       asOf: currentMarketTime(),
-      dataSource: replayDataSource(marketProviders),
+      dataSource: replayDataSource(opportunityProviders),
     } satisfies ReplayStatus);
   });
 

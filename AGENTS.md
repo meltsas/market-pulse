@@ -76,8 +76,10 @@ These rules apply to all AI agents working in this repository. Follow the existi
 
 - Follow the repository's existing formatting, naming, and folder conventions unless the task explicitly requires a change.
 - Add or update focused tests when changing behavior, especially for data transformations, state transitions, event handling, and error cases.
-- Before finishing, run the relevant available checks (typecheck, lint, tests, build). Fix failures caused by your changes.
-- Do not claim checks passed unless they actually ran. Report any checks you could not run and why.
+- Verify in two stages, so the full test suite does not run after every change:
+  - **While working and before handing work over:** run the tests that cover the new behavior and the existing code most likely to break because of the change, e.g. `npx vitest run <test files>` or `npx vitest related --run <changed files>`. Run `npm run typecheck`, which catches breakage in code those tests do not cover, and lint and format the changed files. Check UI changes in the browser. Fix failures caused by your changes.
+  - **After the user has reviewed the work and asks for it,** typically before a phase is merged into `master`: run the full checks `npm run typecheck`, `npm run lint`, `npm run format:check`, `npm test`, and `npm run build`.
+- Do not claim checks passed unless they actually ran. When handing work over, state which checks ran and which are left for the full run.
 - In the final response, briefly state what changed, important decisions or tradeoffs, and any remaining limitations. Avoid lengthy self-justification.
 
 **Decision rule:** When two solutions meet the requirements, choose the one with fewer dependencies, fewer moving parts, clearer types, and simpler maintenance.

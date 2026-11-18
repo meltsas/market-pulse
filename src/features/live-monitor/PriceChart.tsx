@@ -21,6 +21,7 @@ import {
 } from 'lightweight-charts';
 import { RotateCcw } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { applyChartTheme, readThemeColor } from '../../charts/chartTheme.ts';
 import type { AnomalyDetectedEvent } from '../../contracts/anomalies.ts';
 import type { Instrument, PricePoint } from '../../contracts/market.ts';
 import {
@@ -100,12 +101,6 @@ function formatTickMark(time: Time, tickMarkType: TickMarkType) {
 function formatCrosshairTime(time: Time) {
   const date = toChartDate(time);
   return date ? formatShortDateTime(date.toISOString()) : '';
-}
-
-function readThemeColor(tokenName: string) {
-  return getComputedStyle(document.documentElement)
-    .getPropertyValue(tokenName)
-    .trim();
 }
 
 function toMarker({
@@ -230,18 +225,7 @@ export function PriceChart({
     const trendColor = readThemeColor(
       trend === 'up' ? '--color-positive' : '--color-negative',
     );
-    const crosshairLabelColor = readThemeColor('--color-text-muted');
-    chartParts.chart.applyOptions({
-      layout: {
-        textColor: readThemeColor('--color-text-subtle'),
-        panes: { separatorColor: readThemeColor('--color-border') },
-      },
-      grid: { horzLines: { color: readThemeColor('--color-chart-grid') } },
-      crosshair: {
-        vertLine: { labelBackgroundColor: crosshairLabelColor },
-        horzLine: { labelBackgroundColor: crosshairLabelColor },
-      },
-    });
+    applyChartTheme(chartParts.chart);
     chartParts.priceSeries.applyOptions({
       lineColor: trendColor,
       topColor: readThemeColor(

@@ -12,8 +12,10 @@ import {
   sampleAnomalyList,
   sampleMarketSnapshot,
   sampleNvidiaHistory,
+  sampleReplayStatus,
 } from '../../test/apiFixtures.ts';
 import { FakeEventSource } from '../../test/fakeEventSource.ts';
+import { requestedPaths } from '../../test/renderApp.tsx';
 
 // The canvas chart cannot render in jsdom; the stand-in exposes what it was given.
 vi.mock('./PriceChart.tsx', () => ({
@@ -38,6 +40,8 @@ function mockMarketApi({ isSnapshotAvailable = true } = {}) {
         return Promise.resolve(Response.json(sampleNvidiaHistory));
       case '/api/market/anomalies':
         return Promise.resolve(Response.json(sampleAnomalyList));
+      case '/api/replay':
+        return Promise.resolve(Response.json(sampleReplayStatus));
       default:
         return Promise.resolve(new Response(null, { status: 404 }));
     }
@@ -53,11 +57,14 @@ function renderLiveMonitor(path = '/live-monitor/NVDA') {
       <RouterProvider router={router} />
     </Provider>,
   );
+  return router;
 }
 
-// The page loads lazily, so the stream exists once its connection status is shown.
+// The app layout opens the stream as soon as it renders.
 async function openStream() {
-  await screen.findByRole('status');
+  await waitFor(() => {
+    expect(FakeEventSource.instances).not.toHaveLength(0);
+  });
   act(() => {
     FakeEventSource.latest().open();
   });
@@ -80,7 +87,7 @@ describe('LiveMonitorPage', () => {
     renderLiveMonitor();
 
     expect(await screen.findByRole('status')).toHaveTextContent('Connecting');
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(requestedPaths(fetchMock)).not.toContain('/api/market/snapshot');
 
     await openStream();
 
@@ -195,6 +202,39 @@ describe('LiveMonitorPage', () => {
 
     expect(
       await screen.findByRole('heading', { level: 2, name: 'NVIDIA' }),
+    ).toBeInTheDocument();
+  });
+
+  it('lists only watched instruments in the watchlist view', async () => {
+    localStorage.setItem('market-pulse-watchlist', JSON.stringify(['NVDA']));
+    mockMarketApi();
+    const user = userEvent.setup();
+    const router = renderLiveMonitor();
+    await openStream();
+    await screen.findByText('Chart with 2 prices');
+
+    await user.click(screen.getByRole('button', { name: 'Watchlist (1)' }));
+
+    const markets = screen.getByRole('navigation', { name: 'Markets' });
+    expect(
+      within(markets)
+        .getAllByRole('link')
+        .map((link) => link.getAttribute('href')),
+    ).toEqual(['/live-monitor/NVDA?list=watchlist']);
+    expect(router.state.location.search).toBe('?list=watchlist');
+  });
+
+  it('adds the selected instrument to the watchlist from its header', async () => {
+    mockMarketApi();
+    const user = userEvent.setup();
+    await renderConnectedLiveMonitor();
+
+    await user.click(
+      screen.getByRole('button', { name: 'Add NVDA to watchlist' }),
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'Watchlist (1)' }),
     ).toBeInTheDocument();
   });
 

@@ -10,6 +10,7 @@ import styles from './DemoDataNotice.module.scss';
 interface DemoDataNoticeProps {
   dataSource: DataSource;
   marketTime: string;
+  statusIndicator?: ReactNode;
   children?: ReactNode;
 }
 
@@ -18,6 +19,7 @@ const SECONDS_PER_MINUTE = 60;
 export function DemoDataNotice({
   dataSource,
   marketTime,
+  statusIndicator,
   children,
 }: DemoDataNoticeProps) {
   const { replayStart, replayEnd, speedMultiplier, isPaused, providers } =
@@ -31,10 +33,13 @@ export function DemoDataNotice({
           <Rewind size={18} aria-hidden="true" />
         </span>
         <div className={styles.text}>
-          <p className={styles.title}>
-            Historical replay
-            <span className={styles.badge}>Demo data</span>
-          </p>
+          <div className={styles.titleRow}>
+            <p className={styles.title}>
+              Historical replay
+              <span className={styles.badge}>Demo data</span>
+            </p>
+            {statusIndicator}
+          </div>
           <p className={styles.description}>
             {`Recorded market data from ${formatReplayWindow(replayStart, replayEnd)}, replayed at ${String(speedMultiplier)}× speed: every second covers ${String(replayedMinutesPerSecond)} minutes of trading. Source: ${providers.join(', ')}.`}
           </p>

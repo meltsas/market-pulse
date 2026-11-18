@@ -1,5 +1,5 @@
 import styles from './ConnectionStatusBadge.module.scss';
-import type { ConnectionStatus } from './marketStreamConnection.ts';
+import type { ConnectionStatus } from '../market-stream/marketStreamConnection.ts';
 
 interface ConnectionStatusBadgeProps {
   connectionStatus: ConnectionStatus;

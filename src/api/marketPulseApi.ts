@@ -8,7 +8,10 @@ import {
   marketSnapshotSchema,
   priceHistorySchema,
 } from '../contracts/market.ts';
-import { opportunityListSchema } from '../contracts/opportunities.ts';
+import {
+  dailyHistorySchema,
+  opportunityListSchema,
+} from '../contracts/opportunities.ts';
 import { replayStatusSchema, type ReplayControl } from '../contracts/replay.ts';
 
 const DEFAULT_API_BASE_URL = '/api';
@@ -40,6 +43,10 @@ export const marketPulseApi = createApi({
       query: () => 'market/anomalies',
       responseSchema: anomalyListSchema,
     }),
+    getReplayStatus: build.query({
+      query: () => 'replay',
+      responseSchema: replayStatusSchema,
+    }),
     controlReplay: build.mutation({
       query: (replayControl: ReplayControl) => ({
         url: 'replay',
@@ -51,6 +58,13 @@ export const marketPulseApi = createApi({
     getOpportunities: build.query({
       query: () => 'opportunities',
       responseSchema: opportunityListSchema,
+    }),
+    getDailyHistory: build.query({
+      query: (symbol: string) => ({
+        url: 'market/daily-history',
+        params: { symbol },
+      }),
+      responseSchema: dailyHistorySchema,
     }),
   }),
 });

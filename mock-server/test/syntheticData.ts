@@ -72,3 +72,18 @@ export function createFundamentals(
     companies,
   };
 }
+
+export function createDailyBarsEndingOn(
+  lastDate: string,
+  closes: readonly number[],
+): DailyBar[] {
+  const lastDateMs = Date.parse(lastDate);
+  return closes.map((close, index) =>
+    createDailyBar(
+      new Date(lastDateMs - (closes.length - 1 - index) * 86_400_000)
+        .toISOString()
+        .slice(0, 10),
+      close,
+    ),
+  );
+}

@@ -1,6 +1,7 @@
 import { Navigate, type RouteObject } from 'react-router';
 import { LiveMonitorRoute } from '../features/live-monitor/LiveMonitorRoute.tsx';
 import { OpportunitiesPage } from '../features/opportunities/OpportunitiesPage.tsx';
+import { OpportunityDetailRoute } from '../features/opportunities/OpportunityDetailRoute.tsx';
 import { SettingsPage } from '../features/settings/SettingsPage.tsx';
 import { WatchlistPage } from '../features/watchlist/WatchlistPage.tsx';
 import { AppLayout } from './AppLayout.tsx';
@@ -17,6 +18,10 @@ export const routes: RouteObject[] = [
         element: <Navigate to={routePaths.opportunities} replace />,
       },
       { path: routePaths.opportunities, element: <OpportunitiesPage /> },
+      {
+        path: `${routePaths.opportunities}/:symbol`,
+        element: <OpportunityDetailRoute />,
+      },
       {
         path: `${routePaths.liveMonitor}/:symbol?`,
         element: <LiveMonitorRoute />,

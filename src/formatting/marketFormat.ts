@@ -46,6 +46,32 @@ const replayWindowFormat = new Intl.DateTimeFormat(DATE_LOCALE, {
   year: 'numeric',
   timeZone: 'UTC',
 });
+const calendarDateFormat = new Intl.DateTimeFormat(DATE_LOCALE, {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+const metricPercentFormat = new Intl.NumberFormat(NUMBER_LOCALE, {
+  style: 'percent',
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+const signedMetricPercentFormat = new Intl.NumberFormat(NUMBER_LOCALE, {
+  style: 'percent',
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+  signDisplay: 'exceptZero',
+});
+const signedPointsFormat = new Intl.NumberFormat(NUMBER_LOCALE, {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+  signDisplay: 'exceptZero',
+});
+const ratioFormat = new Intl.NumberFormat(NUMBER_LOCALE, {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
 const replayDayFormat = new Intl.DateTimeFormat(DATE_LOCALE, {
   weekday: 'short',
   day: 'numeric',
@@ -128,6 +154,27 @@ export function formatPriceChange(
 
 export function formatPercentChange(changePercent: number) {
   return withTypographicMinus(percentChangeFormat.format(changePercent / 100));
+}
+
+export function formatMetricPercent(percent: number) {
+  return withTypographicMinus(metricPercentFormat.format(percent / 100));
+}
+
+export function formatSignedMetricPercent(percent: number) {
+  return withTypographicMinus(signedMetricPercentFormat.format(percent / 100));
+}
+
+export function formatSignedPoints(points: number) {
+  return `${withTypographicMinus(signedPointsFormat.format(points))} pts`;
+}
+
+export function formatRatio(ratio: number) {
+  return ratioFormat.format(ratio);
+}
+
+// Calendar dates such as report periods and trading days carry no time zone.
+export function formatCalendarDate(isoDate: string) {
+  return calendarDateFormat.format(new Date(isoDate));
 }
 
 export function formatVolume(volume: number) {

@@ -65,7 +65,7 @@ npm run dev
 
 `npm run dev` starts the mock API and the UI together; their logs are prefixed with `api` and `ui`, and Ctrl+C stops both. Open the URL that Vite prints and go to **Live Monitor**. No API keys are needed.
 
-The replay controls under the **Historical replay** notice pause and resume the replay, move it to any moment of the recorded period, change its speed, and jump straight to the 5 November sell-off.
+Every page with market data shows the same **Historical replay** panel. It labels the data as a demo, shows the market time and the live connection, and controls the replay: pause and resume, move to any moment of the recorded period, change the speed, or jump straight to the 5 November sell-off.
 
 ### Scripts
 
@@ -90,18 +90,31 @@ To override configuration locally, copy `.env.example` to `.env.local`. Only non
 
 The mock API replays real market data from **4–6 November 2026**, including the 5 November sell-off. By default it runs at 300× speed, one 5-minute bar per second, and starts again from the beginning after 6 November. All responses label the data as a historical replay and include the replay window, speed, pause state, and market time. Vite proxies `/api` to the mock API.
 
-| Endpoint                              | Purpose                                                                                               |
-| ------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `GET /api/market/snapshot`            | Latest quotes at the current replay time                                                              |
-| `GET /api/market/history?symbol=NVDA` | 5-minute prices and volume of one instrument up to the current replay time                            |
-| `GET /api/market/anomalies`           | Unusual activity detected so far in the current replay                                                |
-| `GET /api/opportunities`              | Screening results from completed daily closes and SEC fundamentals                                    |
-| `GET /api/market/stream`              | SSE events: `quote.updated`, `anomaly.detected`, `replay.restarted`, `replay.changed`, `replay.clock` |
-| `PATCH /api/replay`                   | Pauses or resumes the replay, moves it to a market time, or sets its speed (60×, 150×, 300×, or 900×) |
+| Endpoint                                    | Purpose                                                                                               |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `GET /api/market/snapshot`                  | Latest quotes at the current replay time                                                              |
+| `GET /api/market/history?symbol=NVDA`       | 5-minute prices and volume of one instrument up to the current replay time                            |
+| `GET /api/market/anomalies`                 | Unusual activity detected so far in the current replay                                                |
+| `GET /api/opportunities`                    | Long/short screening of every instrument from completed daily closes and SEC fundamentals             |
+| `GET /api/market/daily-history?symbol=NVDA` | A year of daily closes with 50- and 200-day averages, up to the latest screening                      |
+| `GET /api/market/stream`                    | SSE events: `quote.updated`, `anomaly.detected`, `replay.restarted`, `replay.changed`, `replay.clock` |
+| `GET /api/replay`                           | The replay window, speed, pause state, and current market time                                        |
+| `PATCH /api/replay`                         | Pauses or resumes the replay, moves it to a market time, or sets its speed (60×, 150×, 300×, or 900×) |
 
-The replay clock lives in the mock API, so every open browser tab follows the same replay.
+The replay clock lives in the mock API, so every open browser tab follows the same replay. The UI keeps one stream connection for the whole app: Live Monitor uses it for prices and alerts, and every page uses it to follow the replay clock and reload results as soon as the replay changes.
 
 Instruments: S&P 500, Nasdaq-100, DAX, NVIDIA, AMD, Alphabet, Oracle, Eli Lilly, Strategy (MSTR), Bitcoin, and EUR/USD.
+
+Opportunity Radar's screening runs at midnight UTC of each replayed day on completed daily closes and on company reports filed before that day. Four rules each point long, short, or neutral, and every result lists them with their thresholds:
+
+| Rule              | Long                                                     | Short                              | Applies to             |
+| ----------------- | -------------------------------------------------------- | ---------------------------------- | ---------------------- |
+| Trend             | Close above the 200-day average                          | Close below it                     | All instruments        |
+| Relative strength | Three-month return beats the S&P 500 by 5 points or more | Trails it by 5 points or more      | All except the S&P 500 |
+| Revenue growth    | 20% or more year over year                               | Shrinking revenue                  | Stocks                 |
+| Valuation         | P/E of 25 or less, on last fiscal-year earnings          | P/E of 50 or more, or unprofitable | Stocks                 |
+
+Two more long than short signals make a long bias, two more short than long a short bias; anything else is mixed. A drop of 20% or more from the 52-week high is listed as a risk, not as a reason to buy. The bias is not investment advice.
 
 The mock API detects two kinds of unusual activity in the recorded data, and every alert states the rule behind it:
 
@@ -133,11 +146,13 @@ See [docs/ROADMAP.md](docs/ROADMAP.md) for implementation phases, mock-server en
 
 Early development. In place:
 
-- **Live Market Monitor:** an instrument list with live prices, a price and volume chart for the selected instrument with alert markers, a feed of explained alerts, connection status, and automatic recovery from stream outages. A notice above the data labels it as a historical replay, shows the replay window, speed, data source, and current market time in your time zone, and lets you pause, move, speed up, or slow down the replay.
+- **Live Market Monitor:** an instrument list with live prices, a price and volume chart for the selected instrument with alert markers, a feed of explained alerts, connection status, and automatic recovery from stream outages. The shared replay panel labels the data as a historical replay, shows the replay window, speed, data sources, and current market time in your time zone, and lets you pause, move, speed up, or slow down the replay from any page.
+- **Opportunity Radar:** a sortable, filterable screening of all instruments with a long, short, or mixed bias. Each instrument has a detail page that explains which rules point which way, lists risks, key metrics, and data freshness, and charts a year of daily closes with 50- and 200-day averages.
+- **Watchlist:** star instruments in Opportunity Radar or Live Monitor. The watchlist is saved in the browser, has its own page, and can be followed in Live Monitor.
 - **Settings:** a light, dark, or system theme, saved in the browser.
 - **Foundation:** routing, a responsive layout, typed and validated API contracts, a mock API that replays recorded market data, and the build, lint, and test tooling.
 
-Opportunity Radar and the watchlist are **not** implemented yet; their descriptions above describe the intended direction.
+Real market data integrations and a private backend are not part of this repository yet.
 
 ## Disclaimer
 

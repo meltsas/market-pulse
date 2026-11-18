@@ -15,6 +15,13 @@ Object.defineProperty(window, 'matchMedia', {
   }),
 });
 
+// jsdom does not implement scrolling, which React Router's scroll restoration calls on navigation.
+Object.defineProperty(window, 'scrollTo', {
+  configurable: true,
+  writable: true,
+  value: () => undefined,
+});
+
 // Lazily loaded routes can take longer than the default second on a busy machine.
 configure({ asyncUtilTimeout: 3000 });
 
@@ -25,4 +32,5 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  localStorage.clear();
 });

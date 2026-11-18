@@ -1,5 +1,5 @@
 import { ArrowLeft, SearchX } from 'lucide-react';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import { marketPulseApi } from '../../api/marketPulseApi.ts';
 import { liveMonitorInstrumentPath, routePaths } from '../../app/routePaths.ts';
 import type { AnomalyDetectedEvent } from '../../contracts/anomalies.ts';
@@ -13,6 +13,7 @@ import {
   formatVolume,
   getTimeZoneLabel,
 } from '../../formatting/marketFormat.ts';
+import { WatchToggleButton } from '../watchlist/WatchToggleButton.tsx';
 import { ChangeBadge } from './ChangeBadge.tsx';
 import styles from './InstrumentDetail.module.scss';
 import { DEFAULT_SYMBOL } from './liveMonitorDefaults.ts';
@@ -33,6 +34,7 @@ const assetClassLabel: Record<AssetClass, string> = {
 const EMPTY_ANOMALIES: readonly AnomalyDetectedEvent[] = [];
 
 export function InstrumentDetail({ selectedSymbol }: InstrumentDetailProps) {
+  const { search } = useLocation();
   const { quote } = marketPulseApi.endpoints.getMarketSnapshot.useQueryState(
     undefined,
     {
@@ -81,7 +83,10 @@ export function InstrumentDetail({ selectedSymbol }: InstrumentDetailProps) {
 
   return (
     <article className={styles.panel} aria-labelledby="instrument-heading">
-      <Link to={routePaths.liveMonitor} className={styles.backLink}>
+      <Link
+        to={{ pathname: routePaths.liveMonitor, search }}
+        className={styles.backLink}
+      >
         <ArrowLeft size={16} aria-hidden="true" />
         All markets
       </Link>
@@ -94,6 +99,7 @@ export function InstrumentDetail({ selectedSymbol }: InstrumentDetailProps) {
           <span className={styles.chip}>
             {assetClassLabel[quote.assetClass]}
           </span>
+          <WatchToggleButton symbol={quote.symbol} />
         </div>
         <div className={styles.priceRow}>
           <TickingPrice quote={quote} className={styles.price} />

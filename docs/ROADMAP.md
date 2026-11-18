@@ -91,15 +91,17 @@ Data note: Yahoo Finance has no intraday bars for US instruments and EUR/USD bet
 
 **Goal:** support research-oriented discovery without real-time requirements.
 
-- [ ] Render an opportunity list from the mock REST endpoint with sorting and a few useful filters.
-- [ ] Add an opportunity detail view explaining why an instrument was surfaced.
-- [ ] Start with simple, interpretable screening conditions: drawdown from a recent high, revenue growth, and a valuation metric where available.
-- [ ] Give each result a long/short bias with its reasons and risks, never a buy or sell recommendation.
-- [ ] Show data freshness and missing metrics explicitly; do not infer that a falling stock is automatically undervalued.
-- [ ] Add a basic local watchlist; avoid authentication and server persistence for the first release.
-- [ ] Allow watchlisted instruments to be followed in Live Market Monitor.
-- [ ] Ensure the research views still function when live updates are disconnected.
-- [ ] Test filtering, sorting, empty results, API errors, and watchlist changes.
+- [x] Render an opportunity list from the mock REST endpoint with sorting and a few useful filters: asset class, bias, and search. Filters and sorting are part of the URL; narrow screens show cards.
+- [x] Add an opportunity detail view explaining why an instrument was surfaced, with a year of daily closes and 50- and 200-day averages (`GET /api/market/daily-history`).
+- [x] Start with simple, interpretable screening conditions: trend against the 200-day average, three-month strength against the S&P 500, revenue growth, and P/E on last fiscal-year earnings. A drawdown from the 52-week high is shown as a risk.
+- [x] Give each result a long/short bias with its reasons and risks, never a buy or sell recommendation.
+- [x] Show data freshness and missing metrics explicitly; do not infer that a falling stock is automatically undervalued.
+- [x] Add a basic local watchlist; avoid authentication and server persistence for the first release. It is a Redux Toolkit slice saved in `localStorage`.
+- [x] Allow watchlisted instruments to be followed in Live Market Monitor (`/live-monitor?list=watchlist`).
+- [x] Ensure the research views still function when live updates are disconnected: they load data over REST and fall back to refreshing every 30 seconds.
+- [x] Show the same replay panel, with replay controls and connection status, on every page with market data. One stream connection serves the whole app, so a pause or jump made on one page shows on every page at once and screening results reload immediately.
+- [x] Test filtering, sorting, empty results, API errors, and watchlist changes.
+- [ ] Use trailing twelve-month earnings for P/E. This needs quarterly EPS from SEC filings; the fourth quarter has to be derived from the annual report.
 
 **Acceptance:** a user can discover an illustrative candidate, understand the supporting metrics and caveats, and add it to the monitor.
 

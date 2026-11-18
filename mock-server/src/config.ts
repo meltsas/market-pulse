@@ -12,5 +12,5 @@ export const REPLAY_BOOKMARKS = [
 export const INTRADAY_INTERVAL_MINUTES = 5;
 // One extra day before the replay gives every instrument a last known price when the replay starts.
 export const INTRADAY_RECORDING_START = '2026-11-03T00:00:00.000Z';
-// A year of daily history before the replay is needed for 52-week highs.
-export const DAILY_RECORDING_START = '2025-10-01T00:00:00.000Z';
+// Daily history covers the 52-week window plus the 200 sessions its first 200-day average needs.
+export const DAILY_RECORDING_START = '2025-01-01T00:00:00.000Z';

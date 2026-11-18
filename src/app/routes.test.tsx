@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { createMemoryRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
-import { beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { routes } from './routes.tsx';
 import { createAppStore } from './store.ts';
 
@@ -18,8 +18,18 @@ function renderAtPath(path: string) {
 
 describe('routes', () => {
   beforeAll(async () => {
-    // Live Monitor loads lazily; importing it once keeps its first render within the default wait time.
+    // Lazily loaded pages are imported once, so their first render stays within the default wait time.
     await import('../features/live-monitor/LiveMonitorPage.tsx');
+    await import('../features/opportunities/OpportunityDetailPage.tsx');
+  });
+
+  beforeEach(() => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(() =>
+        Promise.resolve(new Response(null, { status: 503 })),
+      ),
+    );
   });
 
   it.each([
@@ -27,6 +37,7 @@ describe('routes', () => {
     ['/live-monitor', 'Live Market Monitor'],
     ['/live-monitor/NVDA', 'Live Market Monitor'],
     ['/watchlist', 'Watchlist'],
+    ['/opportunities/ORCL', 'Opportunity Radar'],
     ['/settings', 'Settings'],
   ])('renders %s inside the shared layout', async (path, pageHeading) => {
     renderAtPath(path);

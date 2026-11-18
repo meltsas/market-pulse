@@ -1,6 +1,9 @@
 import { Activity, Radar, Settings, Star } from 'lucide-react';
 import { Link, NavLink, Outlet, ScrollRestoration } from 'react-router';
+import { useMarketStream } from '../features/market-stream/useMarketStream.ts';
+import { selectWatchedSymbols } from '../features/watchlist/watchlistSlice.ts';
 import styles from './AppLayout.module.scss';
+import { useAppSelector } from './hooks.ts';
 import { routePaths } from './routePaths.ts';
 
 const MAIN_CONTENT_ID = 'main-content';
@@ -13,6 +16,8 @@ const navigationItems = [
 ] as const;
 
 export function AppLayout() {
+  useMarketStream();
+  const watchedCount = useAppSelector(selectWatchedSymbols).length;
   return (
     <div className={styles.layout}>
       <a className={styles.skipLink} href={`#${MAIN_CONTENT_ID}`}>
@@ -40,6 +45,16 @@ export function AppLayout() {
                     className={styles.navIcon}
                   />
                   {label}
+                  {path === routePaths.watchlist && watchedCount > 0 && (
+                    <>
+                      <span className={styles.navCount} aria-hidden="true">
+                        {watchedCount}
+                      </span>
+                      <span className={styles.visuallyHidden}>
+                        {`, ${String(watchedCount)} saved`}
+                      </span>
+                    </>
+                  )}
                 </NavLink>
               </li>
             ))}

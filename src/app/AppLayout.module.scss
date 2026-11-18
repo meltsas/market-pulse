@@ -150,6 +150,23 @@ $wide-layout-min-width: 60rem;
   }
 }
 
+.visuallyHidden {
+  @include mixins.visually-hidden;
+}
+
+.navCount {
+  min-width: 1.25rem;
+  margin-left: auto;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--color-accent);
+  background-color: var(--color-accent-subtle);
+}
+
 .navIcon {
   @media (max-width: 30rem) {
     display: none;
