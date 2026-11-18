@@ -8,7 +8,8 @@ export const replayBookmarkSchema = z.object({
 });
 
 export const dataSourceSchema = z.object({
-  kind: z.literal('historical-replay'),
+  // Synthetic replays use generated prices when recorded market data is unavailable.
+  kind: z.enum(['historical-replay', 'synthetic-replay']),
   providers: z.array(z.string().min(1)).min(1),
   replayStart: utcTimestampSchema,
   replayEnd: utcTimestampSchema,

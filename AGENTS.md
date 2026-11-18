@@ -86,7 +86,7 @@ These rules apply to all AI agents working in this repository. Follow the existi
 
 ## Session logging
 
-Maintain a lightweight session log under `docs/ai/sessions/`.
+Maintain a lightweight session log under `docs/ai/sessions/`. The folder is gitignored, so the logs stay on the developer's machine.
 
 - At the start of each new session, create a file named
   `YYYY-MM-DD_HH-mm-ss.md`, using the local system date and time.

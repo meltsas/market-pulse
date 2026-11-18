@@ -29,6 +29,7 @@ interface MockServerOptions {
   instruments: readonly DemoInstrument[];
   recordedMarketData: RecordedMarketData;
   fundamentals: SecFundamentals;
+  isSyntheticData?: boolean;
   now?: () => number;
   tickIntervalMs?: number;
 }
@@ -42,6 +43,7 @@ export function createMockServer({
   instruments,
   recordedMarketData,
   fundamentals,
+  isSyntheticData = false,
   now = Date.now,
   tickIntervalMs = STREAM_TICK_INTERVAL_MS,
 }: MockServerOptions): MockServer {
@@ -65,7 +67,7 @@ export function createMockServer({
     fundamentals.provider,
   ];
   const replayDataSource = (providers: string[]): DataSource => ({
-    kind: 'historical-replay',
+    kind: isSyntheticData ? 'synthetic-replay' : 'historical-replay',
     providers,
     replayStart: REPLAY_START,
     replayEnd: REPLAY_END,

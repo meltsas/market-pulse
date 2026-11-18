@@ -22,9 +22,13 @@ export function DemoDataNotice({
   statusIndicator,
   children,
 }: DemoDataNoticeProps) {
-  const { replayStart, replayEnd, speedMultiplier, isPaused, providers } =
+  const { kind, replayStart, replayEnd, speedMultiplier, isPaused, providers } =
     dataSource;
   const replayedMinutesPerSecond = speedMultiplier / SECONDS_PER_MINUTE;
+  const isSynthetic = kind === 'synthetic-replay';
+  const dataDescription = isSynthetic
+    ? `Generated prices, not real market data, for ${formatReplayWindow(replayStart, replayEnd)}`
+    : `Recorded market data from ${formatReplayWindow(replayStart, replayEnd)}`;
 
   return (
     <aside className={styles.notice} aria-label="About this data">
@@ -35,13 +39,13 @@ export function DemoDataNotice({
         <div className={styles.text}>
           <div className={styles.titleRow}>
             <p className={styles.title}>
-              Historical replay
+              {isSynthetic ? 'Synthetic replay' : 'Historical replay'}
               <span className={styles.badge}>Demo data</span>
             </p>
             {statusIndicator}
           </div>
           <p className={styles.description}>
-            {`Recorded market data from ${formatReplayWindow(replayStart, replayEnd)}, replayed at ${String(speedMultiplier)}× speed: every second covers ${String(replayedMinutesPerSecond)} minutes of trading. Source: ${providers.join(', ')}.`}
+            {`${dataDescription}, replayed at ${String(speedMultiplier)}× speed: every second covers ${String(replayedMinutesPerSecond)} minutes of trading. Source: ${providers.join(', ')}.`}
           </p>
         </div>
         <p className={styles.clock}>

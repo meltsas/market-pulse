@@ -1,159 +1,114 @@
 # Market Pulse
 
+[![CI](https://github.com/meltsas/market-pulse/actions/workflows/ci.yml/badge.svg)](https://github.com/meltsas/market-pulse/actions/workflows/ci.yml)
+
 **Discover investment opportunities. Understand unusual market activity.**
 
-Market Pulse is an experimental market intelligence dashboard built with React and TypeScript. It combines longer-term investment research with live market monitoring to help individual investors identify **what deserves a closer look — and why**.
+Market Pulse is a market intelligence dashboard built with React and TypeScript. It combines research-oriented screening with live market monitoring to show individual investors **what deserves a closer look, and why**. A local mock API replays three days of market data, including the 5 November 2026 sell-off, so the whole app runs without paid data or API keys.
 
-This is a personal software project, not a trading platform or an investment advisory service.
+This is a personal software project, not a trading platform or investment advice.
 
-## What it aims to do
+![Live Monitor during the 5 November sell-off](docs/images/live-monitor.png)
 
-### Opportunity Radar
+## Features
 
-Find companies worth researching using price trends and selected fundamental metrics. Each opportunity should explain the underlying signals and their limitations rather than issue a buy recommendation.
+- **Live Market Monitor:** instruments with prices that update as the replay runs, a price and volume chart with alert markers, and a feed of unusual activity that explains the rule behind each alert. Connection loss and recovery are visible and handled without losing data.
+- **Opportunity Radar:** a sortable, filterable screening of every instrument with a long, short, or mixed bias. Each result explains which rules point which way, lists risks and missing data, shows how fresh the data is, and charts a year of prices with 50- and 200-day averages.
+- **Watchlist:** star instruments anywhere in the app, review them on their own page, and follow them in Live Monitor.
+- **Replay controls:** every page with market data clearly labels it as a replay and lets you pause, move through the recorded days, change the speed, or jump to the sell-off.
+- **Settings:** light, dark, or system theme.
 
-### Live Market Monitor
+| Opportunity Radar                                                    | Instrument detail                                                |
+| -------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| ![Opportunity Radar in dark mode](docs/images/opportunity-radar.png) | ![Oracle's screening detail](docs/images/opportunity-detail.png) |
 
-Follow selected instruments, visualize changing prices, and surface unusual price or volume activity. A local mock API replays recorded market data, so the real-time interface is demonstrable without paid market data or API keys.
+## How it's built
 
-## Tech stack
+| Area               | Technology                                 |
+| ------------------ | ------------------------------------------ |
+| Frontend           | React 19, TypeScript, Vite                 |
+| Routing            | React Router                               |
+| State and API data | Redux Toolkit, RTK Query                   |
+| Live updates       | Server-Sent Events (SSE)                   |
+| Charts             | TradingView Lightweight Charts             |
+| Styling            | SCSS Modules, design tokens, Inter, Lucide |
+| Runtime validation | Zod                                        |
+| Testing            | Vitest, React Testing Library              |
+| Mock API           | Node.js 24 with native TypeScript, Fastify |
 
-| Area                 | Technology                                |
-| -------------------- | ----------------------------------------- |
-| Frontend             | React, TypeScript, Vite                   |
-| Routing              | React Router                              |
-| Client state         | Redux Toolkit                             |
-| API data and caching | RTK Query                                 |
-| Live updates         | Server-Sent Events (SSE)                  |
-| Charts               | TradingView Lightweight Charts            |
-| Styling              | SCSS Modules, Inter, Lucide icons         |
-| Runtime validation   | Zod                                       |
-| Testing              | Vitest, React Testing Library, Playwright |
-| Local demo API       | Node.js, TypeScript, Fastify              |
+Some of the decisions behind it:
 
-The frontend is designed around a feature-based structure, typed API contracts, and a clear separation between UI, data access, and live connections. Dependencies will be added only when a feature requires them.
+- **One set of contracts.** Zod schemas in `src/contracts/` type the mock API and validate every REST response and stream event in the UI, so invalid data becomes a visible error state instead of a crash.
+- **Live data without lost or stale updates.** One SSE connection serves the whole app. After it opens, cached data is refetched, events that arrive meanwhile are queued and applied afterwards, and no event can move cached data back in time. The connection reconnects with backoff and notices a stalled stream through a heartbeat.
+- **Explainable, honest signals.** Every alert and screening result states its rule and thresholds. The screening only uses closes and company reports that existed at the time, and it shows missing data instead of guessing.
+- **Focused rendering.** Components subscribe to their own part of the RTK Query cache, and charts append new points instead of redrawing.
+- **Accessible, responsive UI.** Semantic HTML, keyboard-operable controls, visible focus, live regions for alerts, reduced-motion support, and layouts that switch to cards and single views on small screens.
+- **Small first load.** Chart pages load on demand, and React ships in its own long-cached chunk.
+- **Checked on every push.** Strict TypeScript, type-aware ESLint, Prettier, the test suites, and a production build run in GitHub Actions.
 
-## Architecture
-
-```text
-                   REST: snapshots, opportunities
-React + TypeScript <----------------------------- Node mock API
-        |                                               |
-        +<-------------- SSE: live events ---------------+
-
-                 Later: separate private backend
-```
-
-- **REST** supplies initial market snapshots, historical data, and opportunity results.
-- **SSE** delivers live price updates and anomaly events; the UI handles connection and stale-data states.
-- **RTK Query** caches API data; **Redux Toolkit** holds shared client-side state when needed.
-- The public repository will include a **self-contained mock server**. Real market-data integrations and server-side analysis may live in a separate private service.
-
-Private backend source code is not a substitute for securing its deployed API. No API secrets belong in the browser bundle.
+The project is developed with AI assistance (Claude Code). [`AGENTS.md`](AGENTS.md) sets the rules the agents follow, such as strict typing, tests for behavior changes, and no unrequested dependencies, and every change is reviewed before it is committed.
 
 ## Running locally
 
-**Requirements:** Node.js 24 (`.nvmrc` pins 24.16.0). Installation fails on unsupported Node versions because `engine-strict` is enabled in `.npmrc`.
-
-### Quick start
+**Requirements:** Node.js 24.16 or newer. `npm install` stops early on older versions.
 
 ```bash
 npm install
-npm run mock-server:record-prices   # first time only, takes about 15 seconds
+npm run mock-server:record-prices   # optional: records the real prices, takes about 15 seconds
 npm run dev
 ```
 
-`npm run dev` starts the mock API and the UI together; their logs are prefixed with `api` and `ui`, and Ctrl+C stops both. Open the URL that Vite prints and go to **Live Monitor**. No API keys are needed.
+`npm run dev` starts the mock API and the UI together; Ctrl+C stops both. Open the URL that Vite prints. Without recorded prices, the mock API generates synthetic prices and the app labels them as such; real prices can be recorded until about early January 2027 (see [docs/mock-api.md](docs/mock-api.md)).
 
-Every page with market data shows the same **Historical replay** panel. It labels the data as a demo, shows the market time and the live connection, and controls the replay: pause and resume, move to any moment of the recorded period, change the speed, or jump straight to the 5 November sell-off.
+### A two-minute tour
+
+1. Open **Live Monitor** and select **Jump to 5 Nov sell-off** in the replay panel.
+2. Watch the US open: prices drop, alerts explain each move, and the chart marks them.
+3. Pause the replay, switch to **Opportunity Radar**, and filter by bias. The pause shows on every page.
+4. Open **ORCL** to see how a falling price and a cheap, growing company produce a mixed bias.
+5. Star a few instruments and follow them from **Watchlist** in Live Monitor.
 
 ### Scripts
 
-| Command                                   | When to use it                                                                                                                      |
-| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run dev`                             | Daily development: starts the mock API and the UI                                                                                   |
-| `npm run dev:ui`                          | Starts only the UI, e.g. against a mock API in another terminal                                                                     |
-| `npm run mock-server`                     | Starts only the mock API on port 4000; it restarts when its code changes                                                            |
-| `npm run typecheck`                       | Runs the TypeScript project check                                                                                                   |
-| `npm run lint`                            | Runs ESLint with type-aware rules                                                                                                   |
-| `npm run format` / `format:check`         | Formats files with Prettier, or only checks them                                                                                    |
-| `npm test` / `test:watch`                 | Runs the test suite once, or in watch mode                                                                                          |
-| `npm run build` / `preview`               | Type-checks and builds into `dist/`, or serves that build locally                                                                   |
-| `npm run mock-server:record-prices`       | **Once per clone:** downloads the replayed prices from Yahoo Finance into the gitignored `mock-server/data/recorded/`               |
-| `npm run mock-server:record-fundamentals` | **Rarely:** refreshes the committed SEC fundamentals after companies file new reports; needs `SEC_USER_AGENT` in `.env` (see below) |
+| Command                                   | Purpose                                                                  |
+| ----------------------------------------- | ------------------------------------------------------------------------ |
+| `npm run dev`                             | Start the mock API and the UI                                            |
+| `npm run dev:ui` / `npm run mock-server`  | Start only the UI, or only the mock API (port 4000, restarts on changes) |
+| `npm run typecheck` / `npm run lint`      | TypeScript project check / ESLint with type-aware rules                  |
+| `npm run format` / `npm run format:check` | Format with Prettier, or only check                                      |
+| `npm test` / `npm run test:watch`         | Run the tests once, or in watch mode                                     |
+| `npm run build` / `npm run preview`       | Type-check and build into `dist/`, or serve that build                   |
+| `npm run mock-server:record-prices`       | Record the replayed prices from Yahoo Finance into a gitignored folder   |
+| `npm run mock-server:record-fundamentals` | Refresh the committed SEC fundamentals; needs `SEC_USER_AGENT` in `.env` |
 
-The two recording scripts only maintain the data the mock API replays. Without recorded prices, the mock API stops with a message that names the script to run.
+The mock API's endpoints, replay, alert and screening rules, and data sources are described in [docs/mock-api.md](docs/mock-api.md).
 
-To override configuration locally, copy `.env.example` to `.env.local`. Only non-secret values belong there: every `VITE_*` variable is visible in the browser bundle.
+## Project structure
 
-### Mock API
+```text
+src/
+  app/         Routing, layout, and the Redux store
+  api/         RTK Query endpoints
+  contracts/   Zod schemas shared with the mock API
+  features/    live-monitor, opportunities, watchlist, replay, market-stream, settings
+  components/  Shared UI components
+mock-server/   Fastify mock API: replay clock, alert detection, and screening
+docs/          Roadmap and mock API reference
+```
 
-The mock API replays real market data from **4–6 November 2026**, including the 5 November sell-off. By default it runs at 300× speed, one 5-minute bar per second, and starts again from the beginning after 6 November. All responses label the data as a historical replay and include the replay window, speed, pause state, and market time. Vite proxies `/api` to the mock API.
+## Data and licensing
 
-| Endpoint                                    | Purpose                                                                                               |
-| ------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `GET /api/market/snapshot`                  | Latest quotes at the current replay time                                                              |
-| `GET /api/market/history?symbol=NVDA`       | 5-minute prices and volume of one instrument up to the current replay time                            |
-| `GET /api/market/anomalies`                 | Unusual activity detected so far in the current replay                                                |
-| `GET /api/opportunities`                    | Long/short screening of every instrument from completed daily closes and SEC fundamentals             |
-| `GET /api/market/daily-history?symbol=NVDA` | A year of daily closes with 50- and 200-day averages, up to the latest screening                      |
-| `GET /api/market/stream`                    | SSE events: `quote.updated`, `anomaly.detected`, `replay.restarted`, `replay.changed`, `replay.clock` |
-| `GET /api/replay`                           | The replay window, speed, pause state, and current market time                                        |
-| `PATCH /api/replay`                         | Pauses or resumes the replay, moves it to a market time, or sets its speed (60×, 150×, 300×, or 900×) |
+- Prices recorded from Yahoo Finance stay on your machine; Yahoo's terms do not allow redistribution. The screenshots show a short excerpt of that data.
+- SEC EDGAR fundamentals are public and committed to the repository.
+- Charts use [TradingView Lightweight Charts™](https://www.tradingview.com/lightweight-charts/) (Apache License 2.0), Copyright © TradingView, Inc. As its license requires, every chart shows the TradingView attribution logo, which links to <https://www.tradingview.com/>.
+- `npm audit` reports a regular-expression denial-of-service advisory in `picomatch`, which Vite and typescript-eslint use at build time. No patched version exists yet, and it is not part of the app that runs in the browser.
 
-The replay clock lives in the mock API, so every open browser tab follows the same replay. The UI keeps one stream connection for the whole app: Live Monitor uses it for prices and alerts, and every page uses it to follow the replay clock and reload results as soon as the replay changes.
+## Roadmap
 
-Instruments: S&P 500, Nasdaq-100, DAX, NVIDIA, AMD, Alphabet, Oracle, Eli Lilly, Strategy (MSTR), Bitcoin, and EUR/USD.
+[docs/ROADMAP.md](docs/ROADMAP.md) lists the completed phases and what comes next, such as a private backend with real market data.
 
-Opportunity Radar's screening runs at midnight UTC of each replayed day on completed daily closes and on company reports filed before that day. Four rules each point long, short, or neutral, and every result lists them with their thresholds:
+## License
 
-| Rule              | Long                                                     | Short                              | Applies to             |
-| ----------------- | -------------------------------------------------------- | ---------------------------------- | ---------------------- |
-| Trend             | Close above the 200-day average                          | Close below it                     | All instruments        |
-| Relative strength | Three-month return beats the S&P 500 by 5 points or more | Trails it by 5 points or more      | All except the S&P 500 |
-| Revenue growth    | 20% or more year over year                               | Shrinking revenue                  | Stocks                 |
-| Valuation         | P/E of 25 or less, on last fiscal-year earnings          | P/E of 50 or more, or unprofitable | Stocks                 |
+[MIT](LICENSE)
 
-Two more long than short signals make a long bias, two more short than long a short bias; anything else is mixed. A drop of 20% or more from the 52-week high is listed as a risk, not as a reason to buy. The bias is not investment advice.
-
-The mock API detects two kinds of unusual activity in the recorded data, and every alert states the rule behind it:
-
-- **Price move:** the price changes within 30 minutes, or since the previous session, by at least 1% for indices, 3% for stocks, 2% for crypto, or 0.4% for currency pairs.
-- **Heavy volume:** a stock's session volume reaches 1.5× its 20-day average daily volume. Index and crypto volume in the recorded data is not comparable with daily volume, and DAX and EUR/USD have none.
-
-To see the stream recover from an outage, run the UI and the mock API in separate terminals (`npm run dev:ui` and `npm run mock-server`), stop the mock API for a few seconds while Live Monitor is open, then start it again. The page shows that live updates are paused and reloads its data once the stream is back. A restarted mock API begins the replay again from 4 November.
-
-### Data sources and licensing
-
-| Data                                  | Source        | In the repository                                               |
-| ------------------------------------- | ------------- | --------------------------------------------------------------- |
-| Daily and 5-minute prices             | Yahoo Finance | No. Recorded locally; Yahoo's terms do not allow redistribution |
-| Quarterly revenue, annual diluted EPS | SEC EDGAR     | Yes, in `mock-server/data/sec-fundamentals.json`                |
-
-Yahoo Finance has no 5-minute or 1-minute bars for US instruments and EUR/USD between 17:15 and 18:50 UTC on 5 November. The next bar reports the volume of the whole gap, so the mock API leaves that bar's volume out and does not attribute price moves to the missing period.
-
-Yahoo Finance serves 5-minute bars only for roughly the last 60 days, so the 4–6 November window can be recorded until about early January 2027. Keep a private backup of `mock-server/data/recorded/` if you need the replay after that.
-
-To re-record SEC fundamentals, set `SEC_USER_AGENT` in `.env` (see `.env.example`): the SEC requires a name and contact email for automated requests.
-
-Charts use [TradingView Lightweight Charts™](https://www.tradingview.com/lightweight-charts/) (Apache License 2.0), Copyright © TradingView, Inc. As its license requires, every chart shows the TradingView attribution logo, which links to <https://www.tradingview.com/>.
-
-## Development plan
-
-See [docs/ROADMAP.md](docs/ROADMAP.md) for implementation phases, mock-server endpoints, milestones, and acceptance criteria.
-
-## Project status
-
-Early development. In place:
-
-- **Live Market Monitor:** an instrument list with live prices, a price and volume chart for the selected instrument with alert markers, a feed of explained alerts, connection status, and automatic recovery from stream outages. The shared replay panel labels the data as a historical replay, shows the replay window, speed, data sources, and current market time in your time zone, and lets you pause, move, speed up, or slow down the replay from any page.
-- **Opportunity Radar:** a sortable, filterable screening of all instruments with a long, short, or mixed bias. Each instrument has a detail page that explains which rules point which way, lists risks, key metrics, and data freshness, and charts a year of daily closes with 50- and 200-day averages.
-- **Watchlist:** star instruments in Opportunity Radar or Live Monitor. The watchlist is saved in the browser, has its own page, and can be followed in Live Monitor.
-- **Settings:** a light, dark, or system theme, saved in the browser.
-- **Foundation:** routing, a responsive layout, typed and validated API contracts, a mock API that replays recorded market data, and the build, lint, and test tooling.
-
-Real market data integrations and a private backend are not part of this repository yet.
-
-## Disclaimer
-
-Market Pulse is for experimentation, education, and independent research. Market signals are not investment advice or guarantees of future performance. Real-data integrations, if added, will depend on data quality, availability, and licensing terms.
+Market Pulse is for experimentation, education, and independent research. Market signals are not investment advice or guarantees of future performance.

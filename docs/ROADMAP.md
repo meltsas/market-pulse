@@ -4,7 +4,7 @@ This roadmap covers the **public React + TypeScript frontend and its local Node.
 
 **Product direction:** combine **Opportunity Radar** (longer-term investment research) and **Live Market Monitor** (short-term anomaly detection). First deliver a credible, independently runnable demo; later explore genuine value for an individual investor.
 
-Unchecked items are planned, not delivered. Update this document as work is completed.
+**Status:** Phases 1–5 are complete: the public demo runs from a fresh clone, with real recorded prices or generated synthetic ones. Phase 6 and the later enhancements are plans, not commitments. Unchecked items are planned, not delivered.
 
 ## Engineering principles
 
@@ -16,7 +16,7 @@ Unchecked items are planned, not delivered. Update this document as work is comp
 - Clearly label simulated market prices, companies, signals, and examples.
 - Follow `AGENTS.md`: avoid unnecessary dependencies, abstraction layers, comments, and shortcuts.
 
-## Phase 1 — React application foundation
+## Phase 1 — React application foundation (complete)
 
 **Goal:** a maintainable SPA that builds, runs, and navigates correctly.
 
@@ -34,7 +34,7 @@ Unchecked items are planned, not delivered. Update this document as work is comp
 
 TypeScript stays on 6.0.x until `typescript-eslint` supports TypeScript 7.
 
-## Phase 2 — Local Node.js / TypeScript mock server
+## Phase 2 — Local Node.js / TypeScript mock server (complete)
 
 **Goal:** make the public project demonstrable without the private backend.
 
@@ -57,14 +57,13 @@ TypeScript stays on 6.0.x until `typescript-eslint` supports TypeScript 7.
 - [x] Clean up disconnected SSE clients and related listeners/timers.
 - [x] Test simulator output and endpoint response shapes.
 - [x] Add and verify scripts for starting the UI and the mock server locally.
-- [ ] Add a small committed fallback dataset, so the mock API runs without recording. Yahoo Finance serves 5-minute bars only for about 60 days, so the 4–6 November window cannot be recorded after early January 2027.
-- [ ] Extend the replay window to 2–16 November 2026 while the 5-minute data is still available.
+- [x] Run without recorded data: the mock API then generates deterministic synthetic prices for the same instruments and scenario and labels them as synthetic. Yahoo Finance serves 5-minute bars only for about 60 days, so the 4–6 November window cannot be recorded after early January 2027 (done in Phase 5).
 
 **Acceptance:** after cloning, a developer can run the UI and mock API, fetch snapshots, and receive predictable SSE events without API keys.
 
 Data licensing: Yahoo Finance prices are recorded locally into a gitignored folder and never committed. SEC EDGAR fundamentals and ECB statistics (reusable with attribution) may be committed.
 
-## Phase 3 — Live Market Monitor
+## Phase 3 — Live Market Monitor (complete)
 
 **Goal:** complete a meaningful real-time frontend workflow.
 
@@ -87,7 +86,7 @@ Data note: Yahoo Finance has no intraday bars for US instruments and EUR/USD bet
 
 **Acceptance:** the demo displays a changing market, detects an anomaly, and handles a disconnected/reconnected stream without corrupting displayed data.
 
-## Phase 4 — Opportunity Radar MVP
+## Phase 4 — Opportunity Radar MVP (complete)
 
 **Goal:** support research-oriented discovery without real-time requirements.
 
@@ -101,22 +100,25 @@ Data note: Yahoo Finance has no intraday bars for US instruments and EUR/USD bet
 - [x] Ensure the research views still function when live updates are disconnected: they load data over REST and fall back to refreshing every 30 seconds.
 - [x] Show the same replay panel, with replay controls and connection status, on every page with market data. One stream connection serves the whole app, so a pause or jump made on one page shows on every page at once and screening results reload immediately.
 - [x] Test filtering, sorting, empty results, API errors, and watchlist changes.
-- [ ] Use trailing twelve-month earnings for P/E. This needs quarterly EPS from SEC filings; the fourth quarter has to be derived from the annual report.
+
+P/E uses diluted earnings for the last fiscal year, and every result says so. Trailing twelve-month earnings would be more current; they are planned with the real-data work in Phase 6.
 
 **Acceptance:** a user can discover an illustrative candidate, understand the supporting metrics and caveats, and add it to the monitor.
 
-## Phase 5 — Public GitHub / portfolio readiness
+## Phase 5 — Public GitHub / portfolio readiness (complete)
 
-**Goal:** make the frontend easy to evaluate as a real engineering project.
+**Goal:** make the project easy to evaluate as a real engineering project.
 
-- [ ] Run and fix the actual type checks, lint, tests, and production build.
-- [ ] Add a Playwright E2E smoke test for navigation and one core user flow.
-- [ ] Verify keyboard navigation, responsive layouts, loading/empty/error states, and clear time/currency formatting.
-- [ ] Add one useful screenshot or short recording of the running dashboard.
-- [ ] Update `README.md` to distinguish completed functionality from planned features.
-- [ ] Document verified local setup and how to reproduce an anomaly demo.
-- [ ] Optionally deploy a public demo that clearly identifies simulated data.
-- [ ] Review public commits and bundled assets for secrets, private integrations, restricted data, or unlicensed market data.
+- [x] Run type checks, lint, formatting, tests, and the production build in GitHub Actions on every push and pull request.
+- [x] Keyboard navigation, responsive layouts, loading, empty, and error states, and time and currency formatting were checked in the browser while building each phase.
+- [x] Add screenshots of the running dashboard to `README.md`.
+- [x] Rewrite `README.md` around what the project does today and how it is built; move the mock API reference to `docs/mock-api.md`.
+- [x] Document the local setup and a short tour that reproduces the sell-off alerts.
+- [x] Let a fresh clone run without recorded data by generating synthetic prices.
+- [x] Review commits and bundled assets for secrets, private integrations, restricted data, and unlicensed market data. Yahoo Finance prices are never committed.
+- [x] Add an MIT license and accept Node.js 24.16 or newer.
+
+Moved to later enhancements: a Playwright end-to-end smoke test and a public demo deployment.
 
 **Acceptance:** another developer can understand, launch, and evaluate the project without private backend access.
 
@@ -128,6 +130,7 @@ Data note: Yahoo Finance has no intraday bars for US instruments and EUR/USD bet
 - [ ] Evaluate provider pricing, data quality, rate limits, redistribution rights, and market-data delays.
 - [ ] Keep the public mock API and private service aligned to a documented, versioned contract.
 - [ ] Add real historical price data and a small set of financial metrics, respecting source licenses.
+- [ ] Compute P/E from trailing twelve-month earnings. This needs quarterly diluted EPS from SEC filings, with the fourth quarter derived from the annual report.
 - [ ] Run Opportunity Radar analyses on a schedule (e.g., daily or several times per day); expose the last-analysis timestamp through REST.
 - [ ] Treat live data separately and account for market hours and delayed quotes.
 - [ ] Add persistence only when historical results, user preferences, or analysis jobs require it.
@@ -138,7 +141,10 @@ Data note: Yahoo Finance has no intraday bars for US instruments and EUR/USD bet
 
 ## Possible later enhancements — not MVP commitments
 
+- **End-to-end tests:** a Playwright smoke test of navigation and one core flow, run against the mock API with synthetic prices.
+- **Public demo:** deploy the UI and mock API with synthetic prices, which can be shared freely, and clearly label them.
 - **Per-viewer replay:** give each visitor an independent replay clock if the demo is ever deployed publicly; the mock API currently shares one clock.
+- **Longer replay periods:** record more days while the provider still serves intraday data, now that the replay can be paused and moved.
 - **Custom alerts:** instrument-specific rules, deduplication, and notification preferences.
 - **Earnings Detective:** compare fundamental metrics across reporting periods.
 - **Thesis Guardian:** track whether the original investment rationale still holds.

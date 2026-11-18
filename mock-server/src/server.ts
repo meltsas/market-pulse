@@ -12,33 +12,43 @@ import {
   recordedMarketDataSchema,
   secFundamentalsFile,
   secFundamentalsSchema,
+  type RecordedMarketData,
 } from './recordedData.ts';
+import { createSyntheticMarketData } from './syntheticMarketData.ts';
+
+const SYNTHETIC_DATA_FLAG = '--synthetic';
 
 function isMissingFileError(error: unknown) {
   return error instanceof Error && 'code' in error && error.code === 'ENOENT';
 }
 
-async function readRecordedMarketData() {
+async function readRecordedMarketData(): Promise<RecordedMarketData | null> {
+  if (process.argv.includes(SYNTHETIC_DATA_FLAG)) {
+    return null;
+  }
   try {
     return await readJsonFile(recordedMarketDataFile, recordedMarketDataSchema);
   } catch (error) {
     if (isMissingFileError(error)) {
-      console.error(
-        'Recorded market data is missing. Run `npm run mock-server:record-prices` once (see README).',
+      console.warn(
+        'No recorded prices found, so the replay uses generated synthetic prices. Run `npm run mock-server:record-prices` to replay real market data (see README).',
       );
-      process.exit(1);
+      return null;
     }
     throw error;
   }
 }
 
+const recordedMarketData = await readRecordedMarketData();
 const { app } = createMockServer({
   instruments: demoInstruments,
-  recordedMarketData: await readRecordedMarketData(),
+  recordedMarketData:
+    recordedMarketData ?? createSyntheticMarketData(demoInstruments),
   fundamentals: await readJsonFile(secFundamentalsFile, secFundamentalsSchema),
+  isSyntheticData: recordedMarketData === null,
 });
 
 await app.listen({ port: MOCK_SERVER_PORT });
 console.info(
-  `Mock API on http://localhost:${String(MOCK_SERVER_PORT)} replays ${REPLAY_START} – ${REPLAY_END} at ${String(REPLAY_SPEED_MULTIPLIER)}x speed`,
+  `Mock API on http://localhost:${String(MOCK_SERVER_PORT)} replays ${recordedMarketData ? 'recorded' : 'synthetic'} prices for ${REPLAY_START} – ${REPLAY_END} at ${String(REPLAY_SPEED_MULTIPLIER)}x speed`,
 );
